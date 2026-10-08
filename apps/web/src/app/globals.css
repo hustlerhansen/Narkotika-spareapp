@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+/*
+ * NY START design tokens (docs/DESIGN_SYSTEM.md).
+ *
+ * Brand palette
+ *   navy  #101827  (primary, headers, counter background)
+ *   teal  #14B8A6  (secondary, decorative accents only – fails AA as text on white)
+ *   teal-700 #0F766E (interactive/text teal – 5.5:1 on white)
+ *   gold  #F5B841  (accent, milestones – use with navy text)
+ *   bg    #F8FAFC
+ *   text  #1E293B
+ *
+ * Components use semantic tokens only, so dark mode and high contrast are a
+ * token swap. Attributes on <html>: data-theme, data-contrast, data-motion.
+ */
+
+:root {
+  --navy: #101827;
+  --teal: #14b8a6;
+  --teal-700: #0f766e;
+  --gold: #f5b841;
+
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --text: #1e293b;
+  --text-muted: #475569;
+  --border: #e2e8f0;
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --on-primary: #ffffff;
+  --accent: #f5b841;
+  --on-accent: #101827;
+  --hero-from: #101827;
+  --hero-to: #134e4a;
+  --on-hero: #ffffff;
+  --on-hero-muted: #cbd5e1;
+  --danger: #b91c1c;
+  --danger-hover: #991b1b;
+  --on-danger: #ffffff;
+  --danger-soft: #fef2f2;
+  --warning-soft: #fffbeb;
+  --warning-border: #f5b841;
+  --success: #15803d;
+  --focus: #2563eb;
+  --shadow: 0 1px 2px rgb(16 24 39 / 0.06), 0 4px 16px rgb(16 24 39 / 0.06);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1220;
+    --surface: #111a2e;
+    --surface-2: #1a2540;
+    --text: #e2e8f0;
+    --text-muted: #a3b1c6;
+    --border: #26324d;
+    --primary: #2dd4bf;
+    --primary-hover: #5eead4;
+    --on-primary: #101827;
+    --hero-from: #0b1220;
+    --hero-to: #134e4a;
+    --danger: #f87171;
+    --danger-hover: #fca5a5;
+    --on-danger: #1f0a0a;
+    --danger-soft: #2a1215;
+    --warning-soft: #2a2412;
+    --success: #4ade80;
+    --focus: #93c5fd;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #1a2540;
+  --text: #e2e8f0;
+  --text-muted: #a3b1c6;
+  --border: #26324d;
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --on-primary: #101827;
+  --hero-from: #0b1220;
+  --hero-to: #134e4a;
+  --danger: #f87171;
+  --danger-hover: #fca5a5;
+  --on-danger: #1f0a0a;
+  --danger-soft: #2a1215;
+  --warning-soft: #2a2412;
+  --success: #4ade80;
+  --focus: #93c5fd;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+/* High contrast: maximal text/background contrast, visible borders, no gradients. */
+:root[data-contrast="high"] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --text: #000000;
+  --text-muted: #1f2937;
+  --border: #000000;
+  --primary: #0b4f4a;
+  --primary-hover: #000000;
+  --on-primary: #ffffff;
+  --hero-from: #000000;
+  --hero-to: #000000;
+  --on-hero-muted: #ffffff;
+  --danger: #8b0000;
+  --focus: #0000ee;
+  --shadow: none;
+  color-scheme: light;
+}
+:root[data-contrast="high"][data-theme="dark"] {
+  --bg: #000000;
+  --surface: #000000;
+  --surface-2: #000000;
+  --text: #ffffff;
+  --text-muted: #e5e7eb;
+  --border: #ffffff;
+  --primary: #5eead4;
+  --primary-hover: #ffffff;
+  --on-primary: #000000;
+  --danger: #ff8a8a;
+  --on-danger: #000000;
+  --focus: #ffff00;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-on-danger: var(--on-danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-border: var(--warning-border);
+  --color-success: var(--success);
+  --color-navy: var(--navy);
+  --color-teal: var(--teal);
+  --color-on-hero: var(--on-hero);
+  --color-on-hero-muted: var(--on-hero-muted);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 1.25rem;
+  --shadow-card: var(--shadow);
+}
+
+html {
+  /* Dynamic text size: set by the user's preference via --text-scale. */
+  font-size: calc(100% * var(--text-scale, 1));
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible focus for keyboard users everywhere. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+.hero-gradient {
+  background: linear-gradient(145deg, var(--hero-from) 0%, var(--hero-to) 100%);
+  color: var(--on-hero);
+}
+
+/* Large tap targets (WCAG 2.5.5 / Apple HIG 44pt). */
+.tap {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Reduced motion: honour OS setting unless the user chose "full", and force when they chose "reduce". */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+/* Breathing circle: phase durations set inline via CSS custom properties. */
+.breath-circle {
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
