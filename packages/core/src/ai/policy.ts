@@ -12,7 +12,8 @@ export const AI_LIMITS = {
   maxMessageChars: 1000,
   /** Only the most recent turns are sent – never the full history. */
   maxHistoryMessages: 8,
-  maxOutputTokens: 500,
+  /** Includes adaptive thinking tokens; replies are kept short by the system prompt. */
+  maxOutputTokens: 16000,
 } as const;
 
 /**
