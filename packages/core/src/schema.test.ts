@@ -13,7 +13,7 @@ describe("parseAppState", () => {
     if (!r.ok) expect(r.error).not.toContain("PRIVATE NOTE");
   });
   it("rejects unknown versions and garbage", () => {
-    expect(parseAppState({ ...createEmptyState(), version: 2 }).ok).toBe(false);
+    expect(parseAppState({ ...createEmptyState(), version: 99 }).ok).toBe(false);
     expect(parseAppState(null).ok).toBe(false);
     expect(parseAppState("{}").ok).toBe(false);
   });

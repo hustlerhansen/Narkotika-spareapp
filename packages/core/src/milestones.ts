@@ -75,13 +75,14 @@ export const ACTIVITY_ACHIEVEMENTS = [
   "first_savings_goal",
   "trusted_contact_saved",
   "first_plan_step",
+  "first_journal_entry",
+  "weekly_goal_reached",
 ] as const;
 export type ActivityAchievementId = (typeof ACTIVITY_ACHIEVEMENTS)[number];
 
 /**
  * Activity-based achievements. Derived from data that is never removed by a
  * lapse, so they cannot be lost by reporting use.
- * (Journal / weekly plan achievements are added with those modules in Phase 3.)
  */
 export function activityAchievements(state: AppState): Record<ActivityAchievementId, boolean> {
   return {
@@ -91,5 +92,7 @@ export function activityAchievements(state: AppState): Record<ActivityAchievemen
     first_savings_goal: state.savingsGoals.length >= 1,
     trusted_contact_saved: state.trustedContacts.length >= 1,
     first_plan_step: state.plan.some((p) => p.doneAt !== undefined),
+    first_journal_entry: state.journal.length >= 1,
+    weekly_goal_reached: state.weeklyGoals.some((g) => g.progress >= g.target),
   };
 }

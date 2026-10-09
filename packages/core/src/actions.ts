@@ -46,7 +46,10 @@ export type DomainErrorCode =
   | "start_before_previous_period"
   | "adult_confirmation_required"
   | "invalid_input"
-  | "not_found";
+  | "not_found"
+  | "duplicate_trigger"
+  | "ai_consent_required"
+  | "storage_locked";
 
 export class DomainError extends Error {
   constructor(public readonly code: DomainErrorCode) {

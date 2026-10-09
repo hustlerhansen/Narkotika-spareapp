@@ -8,6 +8,8 @@
  * must be approved by a qualified clinician before production launch
  * (docs/RISK_REGISTER.md, R-03).
  */
+import { nbTools } from "./nb-tools";
+
 export const nb = {
   app: {
     name: "NY START",
@@ -344,6 +346,8 @@ export const nb = {
     first_savings_goal: "Første sparemål",
     trusted_contact_saved: "La inn en støtteperson",
     first_plan_step: "Første steg i planen",
+    first_journal_entry: "Første dagboknotat",
+    weekly_goal_reached: "Nådde et ukemål",
   },
   savings: {
     title: "Økonomi",
@@ -596,6 +600,7 @@ export const nb = {
     "Pust. Du er her nå, og det er nok.",
     "En ny dag. En ny mulighet.",
   ],
+  ...nbTools,
 } as const;
 
 export type NbMessages = typeof nb;

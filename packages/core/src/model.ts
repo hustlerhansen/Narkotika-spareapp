@@ -173,15 +173,215 @@ export const CRAVING_TOOLS = [
 export type CravingTool = (typeof CRAVING_TOOLS)[number];
 
 /** Logged when the person uses the SOS flow. All fields except time are optional. */
+/**
+ * A craving episode. Created by the SOS reflection (`source: "sos"`) or by the
+ * craving log in "Mine triggere" (`source: "log"`). v1 events have no source.
+ */
 export interface CravingEvent {
   id: string;
   startedAt: string;
+  /** Intensity 0–10 at the start (the "craving intensity" of a log entry). */
   intensityBefore?: number;
   intensityAfter?: number;
   toolsUsed: CravingTool[];
+  /** Free-text trigger (SOS reflection). */
   trigger?: string;
   whatHelped?: string;
   createdAt: string;
+  // --- v2 (Phase 3) ---
+  source?: "sos" | "log";
+  /** Ids of UserTrigger. */
+  triggerIds?: string[];
+  emotions?: EmotionId[];
+  /** Coping strategies tried: preset keys or `custom:<id>`. */
+  strategyKeys?: string[];
+  /** Self-rated helpfulness of the strategies tried. */
+  helpful?: HelpfulRating;
+  note?: string;
+}
+
+export const EMOTION_IDS = ["happy", "calm", "motivated", "stressed", "sad", "anxious", "angry", "lonely", "tired", "hopeful"] as const;
+export type EmotionId = (typeof EMOTION_IDS)[number];
+
+export const HELPFUL_RATINGS = ["yes", "somewhat", "no"] as const;
+export type HelpfulRating = (typeof HELPFUL_RATINGS)[number];
+
+// ----------------------------------------------------------------------------- journal (Phase 3)
+
+export const JOURNAL_PROMPT_KEYS = ["how_now", "difficult_today", "mastered_today", "craving_trigger", "help_rest_of_day"] as const;
+export type JournalPromptKey = (typeof JOURNAL_PROMPT_KEYS)[number];
+
+/** Private journal entry. Never leaves the device unless the user exports it. */
+export interface JournalEntry {
+  id: string;
+  /** Local date the entry is about, YYYY-MM-DD. */
+  date: string;
+  text?: string;
+  /** Guided-journal answers (all optional). */
+  prompts?: Partial<Record<JournalPromptKey, string>>;
+  /** 1 (very low) … 10 (very good). Self-reported, not a clinical measure. */
+  mood?: number;
+  emotions: EmotionId[];
+  /** 0–10 */
+  craving?: number;
+  tags: string[];
+  important: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------------- triggers & coping (Phase 3)
+
+export const TRIGGER_KINDS = ["emotion", "situation", "location", "physical", "custom"] as const;
+export type TriggerKind = (typeof TRIGGER_KINDS)[number];
+
+export const TRIGGER_PRESETS = {
+  emotion: ["stress", "anxiety", "anger", "sadness", "loneliness", "boredom", "excitement"],
+  situation: ["alone", "parties", "conflict", "receiving_money", "payday", "lack_of_sleep", "unexpected_stress", "people_from_use"],
+  physical: ["fatigue", "restlessness", "hunger", "pain", "sleep_difficulties"],
+  location: [],
+  custom: [],
+} as const satisfies Record<TriggerKind, readonly string[]>;
+
+/**
+ * A trigger the person has chosen to track. Locations are user-written labels
+ * only – the app never collects GPS coordinates.
+ */
+export interface UserTrigger {
+  id: string;
+  kind: TriggerKind;
+  /** Key from TRIGGER_PRESETS[kind]; absent for location/custom. */
+  presetKey?: string;
+  /** Own wording; required for location and custom. */
+  label?: string;
+  createdAt: string;
+  archivedAt?: string;
+}
+
+export const COPING_PRESETS = [
+  "contact_trusted_person",
+  "move_safer_environment",
+  "grounding",
+  "breathing",
+  "short_walk",
+  "eat_or_drink",
+  "follow_recovery_plan",
+  "professional_support",
+  "delay_with_timer",
+  "distraction",
+  "write_journal",
+  "read_reasons",
+] as const;
+export type CopingPresetKey = (typeof COPING_PRESETS)[number];
+
+export interface CustomCopingStrategy {
+  id: string;
+  label: string;
+  createdAt: string;
+}
+
+// ----------------------------------------------------------------------------- planner (Phase 3)
+
+export const TASK_CATEGORIES = ["wake", "meal", "exercise", "rest", "appointment", "contact", "recovery", "reflection", "other"] as const;
+export type TaskCategory = (typeof TASK_CATEGORIES)[number];
+
+/** ISO weekday: 1 = Monday … 7 = Sunday. */
+export type IsoWeekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export type TaskRecurrence = { kind: "none" } | { kind: "daily" } | { kind: "weekly"; days: IsoWeekday[] };
+
+export interface PlannerTask {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  /** First (or only) date, YYYY-MM-DD local. */
+  startDate: string;
+  /** Last date for repeating tasks (inclusive). */
+  endDate?: string;
+  /** Optional time of day, HH:MM. */
+  time?: string;
+  recurrence: TaskRecurrence;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskCompletion {
+  taskId: string;
+  /** Occurrence date, YYYY-MM-DD. */
+  date: string;
+  completedAt: string;
+}
+
+export interface WeeklyGoal {
+  id: string;
+  /** Monday of the week, YYYY-MM-DD. */
+  weekStart: string;
+  title: string;
+  /** How many times the person wants to do it this week. */
+  target: number;
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** "Min plan" – the person's own recovery plan, editable at any time. */
+export interface PersonalRecoveryPlan {
+  reasons: string;
+  goals: string[];
+  triggerIds: string[];
+  triggerNotes: string;
+  warningSigns: string[];
+  strategyKeys: string[];
+  strategyNotes: string;
+  contactIds: string[];
+  contactNotes: string;
+  /** Ids from SUPPORT_RESOURCES the person wants to remember. */
+  professionalResourceIds: string[];
+  professionalNotes: string;
+  afterUse: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------------- education (Phase 3)
+
+export interface ArticleReading {
+  articleId: string;
+  /** 0..1, highest scroll position reached. */
+  progress: number;
+  lastReadAt: string;
+}
+
+export interface EducationState {
+  bookmarks: string[];
+  reading: ArticleReading[];
+}
+
+// ----------------------------------------------------------------------------- AI (Phase 3, disabled by default)
+
+export const AI_CONSENT_VERSION = "2026-10-ai-v1";
+
+export interface AiConsent {
+  version: string;
+  grantedAt: string;
+  /** Allow a minimal summary (goal, substance, days) to be sent. Off by default. */
+  personalization: boolean;
+}
+
+export type RiskLevel = "none" | "elevated" | "urgent" | "emergency";
+
+export interface AiMessage {
+  id: string;
+  role: "user" | "assistant" | "safety";
+  content: string;
+  createdAt: string;
+  riskLevel?: RiskLevel;
+}
+
+export interface AiState {
+  consent: AiConsent | null;
+  /** Stored only on this device. Can be deleted at any time. */
+  messages: AiMessage[];
 }
 
 export type PlanItemKind = "safety" | "support" | "routine" | "awareness" | "finance" | "professional";
@@ -236,7 +436,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   motion: "system",
 };
 
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 
 /** The complete local state of one person's recovery data. */
 export interface AppState {
@@ -251,6 +451,17 @@ export interface AppState {
   cravingEvents: CravingEvent[];
   plan: RecoveryPlanItem[];
   preferences: Preferences;
+  // --- v2 (Phase 3) ---
+  journal: JournalEntry[];
+  triggers: UserTrigger[];
+  customCopingStrategies: CustomCopingStrategy[];
+  favoriteCopingKeys: string[];
+  plannerTasks: PlannerTask[];
+  taskCompletions: TaskCompletion[];
+  weeklyGoals: WeeklyGoal[];
+  personalPlan: PersonalRecoveryPlan | null;
+  education: EducationState;
+  ai: AiState;
 }
 
 export function createEmptyState(): AppState {
@@ -266,5 +477,22 @@ export function createEmptyState(): AppState {
     cravingEvents: [],
     plan: [],
     preferences: { ...DEFAULT_PREFERENCES },
+    ...createV2Defaults(),
+  };
+}
+
+/** Fields added in state version 2 (used by createEmptyState and the v1→v2 migration). */
+export function createV2Defaults() {
+  return {
+    journal: [] as JournalEntry[],
+    triggers: [] as UserTrigger[],
+    customCopingStrategies: [] as CustomCopingStrategy[],
+    favoriteCopingKeys: [] as string[],
+    plannerTasks: [] as PlannerTask[],
+    taskCompletions: [] as TaskCompletion[],
+    weeklyGoals: [] as WeeklyGoal[],
+    personalPlan: null as PersonalRecoveryPlan | null,
+    education: { bookmarks: [], reading: [] } as EducationState,
+    ai: { consent: null, messages: [] } as AiState,
   };
 }
