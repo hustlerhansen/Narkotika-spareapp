@@ -45,10 +45,15 @@ test.describe("Scenario 5 – SOS works without an account", () => {
     await expectAccessible(page);
   });
 
-  test("AI is honestly marked as unavailable", async ({ page }) => {
+  test("AI is honestly marked as not enabled (server flag off by default)", async ({ page }) => {
     await page.goto("/coach");
-    await expect(page.getByText("AI-coachen er ikke tilgjengelig ennå")).toBeVisible();
-    await expect(page.getByText("NY START AI er ikke lege, terapeut eller behandler.")).toBeVisible();
+    await expect(page.getByText("AI-støtte er ikke aktivert")).toBeVisible();
+    await expect(page.getByText("Ikke lege, psykolog eller behandler")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Skriv en melding …" })).toHaveCount(0);
+    const status = await page.request.get("/api/ai/status");
+    expect(await status.json()).toEqual({ enabled: false, mock: true });
+    const chat = await page.request.post("/api/ai/chat", { data: { consentVersion: "x", messages: [{ role: "user", content: "hei" }] } });
+    expect(chat.status()).toBe(404);
     await expectAccessible(page);
   });
 
