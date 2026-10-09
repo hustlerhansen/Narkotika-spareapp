@@ -2,6 +2,8 @@
 
 Dato: 2026-10-09 · Grunnlag: PR #1 (`feature/phase-3-recovery-companion` @ `846db51`), alle tester grønne lokalt (220 core, 34 web, 105 DB, 65 E2E).
 
+> Oppdatering: planen er gjennomført – se [PHASE_4_REPORT.md](PHASE_4_REPORT.md) og [LAUNCH_PLAN.md](LAUNCH_PLAN.md).
+
 ## 1. Nåværende status (analyse)
 
 | Område | Status | Funn |

@@ -1,6 +1,6 @@
 # Launch-readiness report
 
-**Verdict (2026-10-09): NOT ready for production.** Phases 1–3 are built and tested for a web pilot with local-only data, but the launch blockers below are open. Nothing has been deployed. The AI support module is disabled.
+**Verdict (2026-10-09, after Phase 4): NOT ready for production; technically ready for a controlled beta once the clinical and legal items for phase 4B are closed** (docs/LAUNCH_PLAN.md, blocker matrix). Nothing has been deployed. The AI support module is disabled.
 
 ## Launch blockers
 
@@ -8,12 +8,26 @@
 |---|---|---|---|
 | LB-01 | Clinical review of all health/safety statements: 62 Kunnskapssenter articles, crisis responses, AI system prompt, safety notices, SOS text (docs/CLINICAL_REVIEW.md) | Clinical lead | Open – nothing reviewed |
 | LB-02 | DPIA; DPAs (hosting, Supabase, AI provider); privacy notice and ToS; legal review of the Article 9 basis (consent adequacy) for AI and future sync | DPO / Legal | Open |
-| LB-03 | AI must stay disabled until: real-model red-team evaluation in Norwegian, clinical review of crisis copy, shared rate-limit store, DPA. (Currently disabled ✔) | AI lead | Open |
+| LB-03 | AI must stay disabled until: real-model red-team evaluation in Norwegian (plan, scenarios and harness ready – AI_EVALUATION_PLAN.md), clinical review of crisis copy, shared rate-limit store (✔ done), DPA. (Currently disabled ✔) | AI lead | Open |
 | LB-04 | Help directory and education sources re-verified manually against live pages (current status `search_extract`) | Content | Open |
-| LB-05 | Supabase auth verified against a real EU project, or hidden in production | Engineering | Open |
+| LB-05 | Supabase auth verified against a real EU project, or hidden in production | Engineering | Partly closed – complete auth flow verified against a real local Supabase stack in CI (16 integration + 12 E2E tests); hosted EU staging needs the owner's account |
 | LB-06 | Legal review of 18+ age limit and medical-device (MDR) / wellness positioning (education + insights) | Legal | Open |
 
-## Verification performed on 2026-10-09 (branch `feature/phase-3-recovery-companion`)
+## Verification performed on 2026-10-09 (branch `feature/phase-4-launch-readiness`)
+
+| Check | Result |
+|---|---|
+| TypeScript, ESLint | pass, 0 warnings |
+| Core unit | **287 / 287** |
+| Web unit | **40 / 40** |
+| Database (PostgreSQL 16) | **121 / 121** |
+| Supabase integration (real local stack) | **16 / 16** |
+| E2E (Pixel 7, desktop, mock AI; axe; PWA; performance budget) | **101 / 101** |
+| Account + admin E2E against the real stack | **12 / 12** |
+| Production build, `supabase db lint` | pass |
+| GitHub Actions (5 jobs) | green |
+
+### Earlier verification (branch `feature/phase-3-recovery-companion`)
 
 | Check | Result |
 |---|---|
@@ -41,13 +55,13 @@ Baseline before Phase 3 (re-run on a clean checkout of `a1222ea`): 63 core, 6 we
 | Cancelling Premium | N/A – not built |
 
 ## Not built / out of scope (honestly labelled in the UI)
-Cloud sync, native app, notifications and planner reminders, payments, admin UI, community (disabled), AI for real users (disabled).
+Cloud sync of health data (deliberately – DPIA first), native app, notifications and planner reminders, payments, community (disabled), AI for real users (disabled), usage analytics (none collected).
 
 ## Release checklist (before go-live)
 - [ ] All LB items closed
 - [ ] Production Supabase (EU), migrations applied, RLS suite run against it
 - [ ] Hosting in the EU, env vars set, `AI_COACH_ENABLED` unset, preview → production promotion **with explicit authorisation**
-- [ ] Error monitoring without PII
+- [x] Error monitoring without PII (coded counters, off by default) – enable and describe in the privacy notice
 - [ ] Backups / PITR and restore tested
 - [ ] Nonce-based CSP (R-19)
 - [ ] Accessibility audit with screen-reader users and people with lived experience

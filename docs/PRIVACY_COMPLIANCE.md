@@ -7,7 +7,7 @@
 | # | Activity | Data | Where | Lawful basis (art. 6) | Art. 9 condition | Status |
 |---|---|---|---|---|---|---|
 | P1 | Local tracking on the device | all recovery data | user's device only | Not controller processing while the data never leaves the device* | – | Live (P2) |
-| P2 | Account (authentication) | e-mail, password hash | Supabase Auth (EU) | 6(1)(b) contract | none (no health data) | Implemented, not live-verified |
+| P2 | Account (authentication) | e-mail, password hash, sign-up/confirmation/sign-in times, 18+ and terms-version confirmation (user metadata) | Supabase Auth (EU) | 6(1)(b) contract | none (no health data) | Implemented; verified against a real local Supabase stack (Phase 4); hosted EU project pending (LB-05). Included in the cloud export (`export_my_data` v3) |
 | P3 | Cloud storage / sync of recovery data | substances, periods, check-ins, journal… | Supabase Postgres (EU) | 6(1)(a) consent **or** 6(1)(b) | **9(2)(a) explicit consent** | Planned P2b – consent recorded in `consent_records` (purpose `cloud_storage_health_data`, policy version) before first upload |
 | P4 | AI coaching with personalisation | messages, optional context | Supabase + AI provider (DPA needed) | 6(1)(a) | 9(2)(a) explicit consent (`ai_personalization`), separately withdrawable | Planned P4 |
 | P5 | Subscriptions | provider IDs, status | Supabase + Stripe/Apple/Google | 6(1)(b) | none – must not include health data in metadata | Planned P5 |
@@ -16,6 +16,8 @@
 | P8 | Community | posts (may reveal health data) | Supabase | 6(1)(a) | 9(2)(a) / 9(2)(e) – to be assessed | Disabled |
 | P9 | Journal, triggers, craving log, planner, personal plan, reading history (Phase 3) | free text, emotions, mood, cravings, triggers (location labels, no GPS) | **device only** | as P1 | – | Live (local) – cloud sync requires separate explicit opt-in **and a separate privacy review** for journal content |
 | P10 | AI chat messages (Phase 3) | message text, optional minimal context (goal, substance, days) | device + server + AI provider (transient) | 6(1)(a) consent | 9(2)(a) explicit consent (`ai_coach`) – **legal review required** whether consent is adequate | Built, **disabled** |
+| P12 | Technical error counters (Phase 4) | daily counts of fixed error codes per app area and release – **no identifiers** | Supabase Postgres (EU) | 6(1)(f) legitimate interest (LIA to confirm); likely not personal data, but the request itself transits the server | – | Built, **off by default** (`NEXT_PUBLIC_ERROR_REPORTING`); described in the draft privacy notice |
+| P13 | AI rate-limit counters (Phase 4) | HMAC hash of the client key + counts per minute/day | Supabase Postgres (EU) | 6(1)(f) security / abuse prevention | – | Built; used only if AI is enabled; 2-day retention via pruning |
 | P11 | Optional local encryption | passphrase-derived key in memory | device only | n/a (security measure) | – | Live (opt-in) |
 
 \* Even for P1 the product must be transparent (privacy notice) and the data must be protected by design. Confirm with counsel whether any controller processing occurs (e.g. hosting logs).
@@ -41,7 +43,7 @@
 | DPAs with processors (Supabase, Vercel, AI provider, Stripe, Expo) | ☐ **launch blocker** |
 | Data transfers outside EEA (SCCs / DPF) | ☐ choose EU regions; assess AI provider |
 | DPIA (art. 35) – required: large-scale special-category data, vulnerable users | ☐ **launch blocker LB-02** |
-| Privacy notice (Norwegian, plain language) | ☐ |
+| Privacy notice (Norwegian, plain language) | ◐ draft at `/personvern`, marked "UTKAST – krever juridisk gjennomgang" |
 | Terms of service, medical disclaimer | 🟡 disclaimer in footer/onboarding; ☐ full ToS |
 | Age limit decision (currently 18+) | ☐ legal review |
 | Breach response procedure (72 h to Datatilsynet) | ☐ |

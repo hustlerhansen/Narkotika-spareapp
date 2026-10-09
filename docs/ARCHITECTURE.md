@@ -1,6 +1,6 @@
 # NY START – Architecture overview
 
-> Status: Phases 1–2 complete; Phase 3 (education, journal, triggers, planner, AI foundation) implemented for **web**. AI disabled.
+> Status: Phases 1–3 complete; Phase 4 (launch readiness: accounts, PWA, admin, shared AI limits, evaluation tooling) implemented for **web**. AI disabled. Nothing deployed.
 > Last updated: 2026-10-09.
 
 ## 1. Goals that drive the architecture
@@ -52,22 +52,29 @@ apps/web/              Next.js 16 App Router web app (mobile-first, PWA manifest
     profil/            Profile, preferences, data rights, account
     mal/               Plan + savings goals
     hjelp/             Verified support directory
-    logg-inn/          Supabase sign-in (only when configured)
+    logg-inn/, registrer/, glemt-passord/, nytt-passord/   accounts (only when configured)
+    personvern/        draft privacy notice and terms (marked as draft)
+    admin/             aggregate-only admin overview (protected in the database)
+    offline/           offline fallback page (precached)
   src/components/      UI primitives (ui/), dashboard/, sos/, savings/
   src/lib/             store (local-first), storage, i18n, supabase/, clock
   src/app/api/ai/      chat + status route handlers (server-side AI only)
+  src/app/auth/callback/  completes e-mail links (PKCE / token_hash), whitelisted redirects
   src/app/sw.js/       generated service worker (offline: static pages only)
   src/lib/server/ai/   AI config, provider (Anthropic SDK), request handler
   src/lib/crypto.ts    optional passphrase encryption (WebCrypto)
   src/proxy.ts         Next 16 proxy: Supabase session refresh (no-op if unconfigured)
-  e2e/                 Playwright + axe end-to-end tests
+  e2e/                 Playwright + axe end-to-end tests (incl. PWA, UX, performance budget)
+  e2e-supabase/        account and admin E2E against a real local Supabase stack
+  scripts/             icon generation, AI evaluation harness (guarded)
 packages/core/         Domain logic shared by all clients (unit tested)
   src/tools/           journal, triggers & coping, pattern analysis, planner, education state
   src/education/       article schema, index, 62 articles, verified sources, validator, search
   src/ai/              deterministic safety layer, policy, provider interface, rate limiting
 supabase/migrations/   SQL schema, RLS policies, data-rights & admin functions
 supabase/seed.sql      GENERATED from @nystart/core catalogues
-supabase/tests/        Runs migrations on a throw-away PostgreSQL and tests RLS
+supabase/config.toml   reference auth/stack configuration (local + CI); templates/ = neutral e-mails
+supabase/tests/        Runs migrations on a throw-away PostgreSQL and tests RLS; integration/ = real stack
 docs/                  Architecture, risk register, privacy, roadmap, launch readiness
 ```
 
@@ -116,6 +123,22 @@ Default storage stays plain `localStorage` (documented as unencrypted). Users ma
 
 ### ADR-013 Offline via a generated service worker
 `/sw.js` is generated at build time with the list of essential pages (SOS, help, Kunnskapssenter, essential articles). Network-first for pages, cache-first for hashed assets, `/api/*` never cached. Cached pages contain no personal data.
+
+### ADR-014 Real Supabase stack as the integration test environment
+*Decision:* the Supabase CLI's local stack (GoTrue, PostgREST, Postgres image, Mailpit) runs in CI and locally; integration and account E2E tests run against it. A hosted EU staging project is set up only with the project owner's account and approval.
+*Why:* verifies auth flows, e-mail links, RLS through real JWTs and data rights without creating cloud resources or keys.
+
+### ADR-015 Accounts without health data
+*Decision:* accounts hold only e-mail and the sign-up confirmations (18+, terms version). Health data stays on the device until a DPIA and explicit consent allow cloud sync. UI never reveals whether an e-mail is registered; e-mail links only redirect to whitelisted internal paths.
+
+### ADR-016 Shared AI rate limits in Postgres; real model gated on it
+*Decision:* `ai_take()` fixed-window counters (service role only, HMAC subjects, fail closed). `readAiConfig` refuses to enable the real provider without this store. See AI_EVALUATION_PLAN.md §6.
+
+### ADR-017 Aggregate-only administration and coded error counters
+*Decision:* `/admin` reads `admin_overview()` (k = 10 suppression, audited) and bundled content-review status. Technical errors are daily counters of fixed codes/areas (no identifiers), off by default. No usage analytics.
+
+### ADR-018 Performance budget
+*Decision:* `@nystart/core` is side-effect free (tree-shaken); the Supabase client is loaded on demand. Per-page JS budgets are enforced in E2E (PERFORMANCE.md).
 
 ## 5. Data flow (Phase 2)
 

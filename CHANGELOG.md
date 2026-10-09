@@ -2,6 +2,25 @@
 
 All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/), dates ISO-8601.
 
+## [0.3.0] – 2026-10-09 – Phase 4: Launch readiness
+
+### Added
+- **CI** (GitHub Actions) on every PR: typecheck, lint, unit, database, production build, E2E (mobile, desktop, mock AI) and a job that runs a **real Supabase stack** (`supabase start`, `db lint`, integration tests, account E2E).
+- **Accounts** (optional, no health data): registration with 18+ and terms confirmation, e-mail confirmation, sign-in, forgot/new password, `/auth/callback` (PKCE and token_hash, whitelisted redirects), change password, download account data, delete account. Neutral Norwegian e-mail templates. UI never reveals whether an address is registered.
+- **Draft privacy notice and terms** (`/personvern`), clearly marked as not legally reviewed.
+- **PWA**: PNG and maskable icons, apple-touch-icon and iOS web-app metadata, neutral home-screen name, SOS/help shortcuts, install card (Android prompt / iOS steps), offline banner, offline fallback page.
+- **UX**: optional "Har du vært rusfri i dag?" in the check-in with calm next steps for "used" (nothing recorded automatically), explanation of the savings estimate, calm acknowledgement of a milestone reached in the last 48 h.
+- **Admin overview** (`/admin`): accounts with k = 10 suppression, coded technical errors, content review status, feature flags; audited; no access to personal data.
+- **Technical error counters** without personal data (off by default) and a calm error boundary with SOS.
+- **AI preparation** (AI still disabled): shared Postgres rate limits and daily budget across instances (real model cannot be enabled without them), 40 machine-readable evaluation scenarios, guarded evaluation harness, evaluation and activation plan with cost estimate.
+- Docs: PHASE_4_PLAN, LAUNCH_PLAN (blocker matrix, 4A–4D, costs, beta protocol), TESTING, PERFORMANCE, AI_EVALUATION_PLAN, PHASE_4_REPORT.
+- Migrations: `20261010000100` (export v3 with account record), `20261010000200` (admin overview, error counters, check-in day status), `20261010000300` (shared AI rate limits).
+
+### Changed
+- `@nystart/core` is side-effect free → ~400 KB → ~265 KB gzip JS on `/sos`; Supabase client loaded on demand; per-page JS budget enforced.
+- Deterministic crisis layer: catches indirect suicidal statements ("bedre uten meg"), routes threats from others to the danger response, and refuses injection-technique questions (found by the new evaluation scenarios).
+- Playwright observes service-worker network requests (stricter privacy assertions; offline fallback testable).
+
 ## [0.2.0] – 2026-10-09 – Phase 3: Recovery Companion
 
 ### Added
