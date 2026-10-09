@@ -37,9 +37,27 @@ async function seedUserData(uid: string) {
       const plan = await q(`insert into public.recovery_plans (user_id, goal) values ($1, 'quit') returning id`, [uid]);
       await q(`insert into public.recovery_tasks (user_id, plan_id, key, kind) values ($1, $2, 'learn_sos', 'support')`, [uid, plan.rows[0].id]);
       await q(`insert into public.trusted_contacts (user_id, name, phone) values ($1, 'Kari', '+47 900 00 000')`, [uid]);
+      await q(`insert into public.consent_records (user_id, purpose, policy_version) values ($1, 'ai_coach', '2026-10-ai-v1')`, [uid]);
       const conv = await q(`insert into public.ai_conversations (user_id) values ($1) returning id`, [uid]);
       await q(`insert into public.ai_messages (conversation_id, user_id, role, content) values ($1, $2, 'user', 'privat samtale')`, [conv.rows[0].id, uid]);
       await q(`insert into public.notification_preferences (user_id) values ($1)`, [uid]);
+      // Phase 3
+      const ptrig = await q(`insert into public.personal_triggers (user_id, kind, preset_key) values ($1, 'situation', 'payday') returning id`, [uid]);
+      const ev = await q(
+        `insert into public.craving_events (user_id, started_at, intensity_before, source, emotions, strategy_keys, helpful) values ($1, now(), 7, 'log', '{stressed}', '{breathing}', 'yes') returning id`,
+        [uid],
+      );
+      await q(`insert into public.craving_event_triggers (craving_event_id, trigger_id, user_id) values ($1, $2, $3)`, [ev.rows[0].id, ptrig.rows[0].id, uid]);
+      await q(`insert into public.coping_strategies (user_id, label) values ($1, 'Spille gitar')`, [uid]);
+      const task = await q(
+        `insert into public.recovery_tasks (user_id, title, category, task_date, recurrence, recurrence_days) values ($1, 'Gå tur', 'exercise', current_date, 'weekly', '{1,3}') returning id`,
+        [uid],
+      );
+      await q(`insert into public.task_completions (task_id, user_id, occurrence_date) values ($1, $2, current_date)`, [task.rows[0].id, uid]);
+      await q(`insert into public.weekly_goals (user_id, week_start, title, target) values ($1, date_trunc('week', now())::date, 'Ett møte', 1)`, [uid]);
+      await q(`insert into public.personal_recovery_plans (user_id, content) values ($1, '{"reasons":"barna"}')`, [uid]);
+      await q(`insert into public.article_activity (user_id, article_id, bookmarked, progress) values ($1, 'hva-er-crack', true, 0.5)`, [uid]);
+      await q(`update public.journal_entries set mood = 9, emotions = '{hopeful}', tags = '{familie}', is_important = true where user_id = $1`, [uid]);
       await q(`insert into public.consent_records (user_id, purpose, policy_version) values ($1, 'cloud_storage_health_data', '2026-10')`, [uid]);
       return subId;
     },
@@ -68,6 +86,13 @@ const OWNER_TABLES: [table: string, ownerColumn: string][] = [
   ["ai_conversations", "user_id"],
   ["ai_messages", "user_id"],
   ["notification_preferences", "user_id"],
+  // Phase 3
+  ["craving_event_triggers", "user_id"],
+  ["coping_strategies", "user_id"],
+  ["task_completions", "user_id"],
+  ["weekly_goals", "user_id"],
+  ["personal_recovery_plans", "user_id"],
+  ["article_activity", "user_id"],
 ];
 
 let aliceSubstanceId: string;
@@ -221,9 +246,14 @@ describe("subscriptions and consents", () => {
       { commit: true },
     );
     await expect(
-      as(db, { role: "authenticated", userId: bob }, (q) => q(`update public.consent_records set withdrawn_at = null`)),
-    ).resolves.toBeDefined(); // policy filters withdrawn rows out → 0 rows affected, no error
-    const r = await db.query(`select count(*)::int n from public.consent_records where user_id = $1 and withdrawn_at is null`, [bob]);
+      as(db, { role: "authenticated", userId: bob }, (q) =>
+        q(`update public.consent_records set withdrawn_at = null where purpose = 'cloud_storage_health_data'`),
+      ),
+    ).resolves.toMatchObject({ rowCount: 0 }); // policy filters withdrawn rows out → nothing re-activated
+    const r = await db.query(
+      `select count(*)::int n from public.consent_records where user_id = $1 and purpose = 'cloud_storage_health_data' and withdrawn_at is null`,
+      [bob],
+    );
     expect(r.rows[0].n).toBe(0);
   });
 });
@@ -357,5 +387,93 @@ describe("data rights", () => {
     expect(aliceStill.rows[0].n).toBe(1);
     const audit = await db.query(`select actor_id, target_id from public.audit_events where action = 'account_deleted'`);
     expect(audit.rows).toEqual([{ actor_id: null, target_id: null }]);
+  });
+});
+
+describe("Phase 3 constraints and consent", () => {
+  it("AI messages can only be written with an active ai_coach consent", async () => {
+    const erin = await createUser(db);
+    await expect(
+      as(db, { role: "authenticated", userId: erin }, (q) => q(`insert into public.ai_conversations (user_id) values ($1)`, [erin])),
+    ).rejects.toThrow(/row-level security/);
+    // grant → allowed; withdraw → blocked again, but existing messages stay readable/deletable
+    await as(
+      db,
+      { role: "authenticated", userId: erin },
+      async (q) => {
+        await q(`insert into public.consent_records (user_id, purpose, policy_version) values ($1, 'ai_coach', '2026-10-ai-v1')`, [erin]);
+        const c = await q(`insert into public.ai_conversations (user_id) values ($1) returning id`, [erin]);
+        await q(`insert into public.ai_messages (conversation_id, user_id, role, content) values ($1, $2, 'user', 'hei')`, [c.rows[0].id, erin]);
+        await q(`update public.consent_records set withdrawn_at = now() where user_id = $1 and purpose = 'ai_coach'`, [erin]);
+      },
+      { commit: true },
+    );
+    await as(db, { role: "authenticated", userId: erin }, async (q) => {
+      expect((await q(`select * from public.ai_messages`)).rowCount).toBe(1);
+      const conv = await q(`select id from public.ai_conversations`);
+      await expect(
+        q(`insert into public.ai_messages (conversation_id, user_id, role, content) values ($1, $2, 'user', 'igjen')`, [conv.rows[0].id, erin]),
+      ).rejects.toThrow(/row-level security/);
+    });
+    await as(db, { role: "authenticated", userId: erin }, async (q) => {
+      expect((await q(`delete from public.ai_messages`)).rowCount).toBe(1);
+    });
+  });
+
+  it("AI messages are immutable once written", async () => {
+    await as(db, { role: "authenticated", userId: alice }, async (q) => {
+      const r = await q(`update public.ai_messages set content = 'endret'`);
+      expect(r.rowCount).toBe(0);
+    });
+  });
+
+  it("cannot link a craving event to another user's trigger", async () => {
+    const bobTrigger = (await db.query(`select id from public.personal_triggers where user_id = $1 and kind is not null`, [bob])).rows[0].id;
+    await expect(
+      as(db, { role: "authenticated", userId: alice }, async (q) => {
+        const ev = await q(`insert into public.craving_events (user_id, started_at) values ($1, now()) returning id`, [alice]);
+        await q(`insert into public.craving_event_triggers (craving_event_id, trigger_id, user_id) values ($1, $2, $3)`, [ev.rows[0].id, bobTrigger, alice]);
+      }),
+    ).rejects.toThrow(/foreign key/);
+  });
+
+  it("enforces journal mood 1–10, known emotions and max 10 tags", async () => {
+    const run = (sql: string) => as(db, { role: "authenticated", userId: alice }, (q) => q(sql, [alice]));
+    await expect(run(`insert into public.journal_entries (user_id, entry_date, mood) values ($1, current_date, 11)`)).rejects.toThrow(/check constraint/);
+    await expect(run(`insert into public.journal_entries (user_id, entry_date, emotions) values ($1, current_date, '{euphoric}')`)).rejects.toThrow(/check constraint/);
+    await expect(
+      run(`insert into public.journal_entries (user_id, entry_date, tags) values ($1, current_date, '{a,b,c,d,e,f,g,h,i,j,k}')`),
+    ).rejects.toThrow(/check constraint/);
+    await expect(run(`insert into public.journal_entries (user_id, entry_date, mood) values ($1, current_date, 10)`)).resolves.toBeDefined();
+  });
+
+  it("weekly goals must start on a Monday; triggers need a preset or label and locations have no coordinates", async () => {
+    const run = (sql: string) => as(db, { role: "authenticated", userId: alice }, (q) => q(sql, [alice]));
+    await expect(
+      run(`insert into public.weekly_goals (user_id, week_start, title, target) values ($1, date_trunc('week', now())::date + 2, 'x', 1)`),
+    ).rejects.toThrow(/check constraint/);
+    await expect(run(`insert into public.personal_triggers (user_id, kind) values ($1, 'custom')`)).rejects.toThrow(/check constraint/);
+    await expect(run(`insert into public.personal_triggers (user_id, kind, preset_key) values ($1, 'location', 'home')`)).rejects.toThrow(/check constraint/);
+    const cols = await db.query(`select column_name from information_schema.columns where table_name = 'personal_triggers'`);
+    expect(cols.rows.map((r) => r.column_name).filter((c: string) => /lat|lon|geo|coord|gps/.test(c))).toEqual([]);
+  });
+
+  it("article ids are validated and recurrence needs weekdays", async () => {
+    const run = (sql: string) => as(db, { role: "authenticated", userId: alice }, (q) => q(sql, [alice]));
+    await expect(run(`insert into public.article_activity (user_id, article_id) values ($1, '../etc/passwd')`)).rejects.toThrow(/check constraint/);
+    await expect(
+      run(`insert into public.recovery_tasks (user_id, title, recurrence) values ($1, 'x', 'weekly')`),
+    ).rejects.toThrow(/check constraint/);
+  });
+
+  it("export includes Phase 3 data", async () => {
+    const res = await as(db, { role: "authenticated", userId: alice }, (q) => q(`select public.export_my_data() as d`));
+    const d = res.rows[0].d;
+    expect(d.formatVersion).toBe(2);
+    for (const key of ["cravingEventTriggers", "copingStrategies", "taskCompletions", "weeklyGoals", "articleActivity"]) {
+      expect(d[key].length, key).toBeGreaterThan(0);
+    }
+    expect(d.personalRecoveryPlan.content.reasons).toBe("barna");
+    expect(d.journal[0].is_important).toBe(true);
   });
 });
