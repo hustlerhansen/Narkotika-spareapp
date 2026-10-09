@@ -118,3 +118,20 @@ describe("catalogue keys", () => {
     expect(bad).toEqual([]);
   });
 });
+
+describe("Phase 3 catalogue completeness", () => {
+  it("covers emotions, triggers, coping, planner and review states", async () => {
+    const m = await import("./index");
+    m.EMOTION_IDS.forEach((id) => defined(`emotions.${id}`));
+    m.TRIGGER_KINDS.forEach((k) => {
+      defined(`triggers.kinds.${k}`);
+      (m.TRIGGER_PRESETS[k] as readonly string[]).forEach((p) => defined(`triggers.presets.${p}`));
+    });
+    m.COPING_PRESETS.forEach((k) => defined(`coping.${k}`));
+    m.TASK_CATEGORIES.forEach((c) => defined(`planner.categories.${c}`));
+    m.JOURNAL_PROMPT_KEYS.forEach((k) => defined(`journal.prompts.${k}`));
+    m.REVIEW_STATUSES.forEach((s) => defined(`learn.review.${s}`));
+    m.PERSONAL_PLAN_STEPS.forEach((s) => defined(`personalPlan.steps.${s}.title`));
+    m.EDUCATION_CATEGORY_IDS.forEach((c) => expect(m.EDUCATION_CATEGORIES.some((x) => x.id === c)).toBe(true));
+  });
+});

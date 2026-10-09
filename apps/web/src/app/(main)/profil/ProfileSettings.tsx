@@ -38,6 +38,8 @@ import { useT } from "@/lib/i18n";
 import { store, useStore, type ActionResult } from "@/lib/store";
 import { fromLocalInputValue, toLocalInputValue } from "@/lib/datetime";
 import { AccountSection } from "./AccountSection";
+import { DataProtectionSection } from "./DataProtectionSection";
+import { LockScreen } from "@/components/LockScreen";
 
 function download(filename: string, content: string, type = "application/json") {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -83,6 +85,8 @@ export function ProfileSettings() {
         <p className="text-muted" role="status">
           {t.t("common.loading")}
         </p>
+      ) : status === "locked" ? (
+        <LockScreen />
       ) : (
         <>
           {state.profile && <AboutSection profile={state.profile} />}
@@ -90,6 +94,7 @@ export function ProfileSettings() {
           <DisplaySection preferences={state.preferences} />
         </>
       )}
+      <DataProtectionSection />
       <AccountSection />
       <DataSection />
     </div>

@@ -38,3 +38,17 @@ describe("device storage", () => {
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 });
+
+describe("protected (encrypted) storage", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("an encrypted envelope loads as locked and is never parsed as plain data", () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ enc: "nystart-aesgcm-v1", iter: 1000, salt: "AAAA", iv: "AAAA", ct: "AAAA" }));
+    localStorage.setItem("nystart.display.v1", JSON.stringify({ theme: "dark", textScale: 1.3 }));
+    const r = loadState(getStorage());
+    expect(r.status).toBe("locked");
+    expect(r.state.profile).toBeNull();
+    expect(r.state.preferences.theme).toBe("dark");
+    expect(r.state.preferences.textScale).toBe(1.3);
+  });
+});

@@ -15,7 +15,7 @@ Scoring: Likelihood (L) and Impact (I) 1–5. Status: Open / Mitigated (in code)
 | R-09 | Shared/stolen device exposes local data | 3 | 4 | ✔ warning in profile; ✔ one-tap delete; ☐ optional PIN/biometric lock; ☐ neutral app name/icon option; ☐ encrypted local storage on native (SecureStore) | Product | Open |
 | R-10 | Notification content reveals addiction on lock screen | 3 | 4 | ✔ schema default `show_content_on_lock_screen = false`; ☐ neutral copy in P3 notifications | Product | Open (P3) |
 | R-11 | Exploitative upselling during distress | 2 | 4 | ✔ SOS, check-in support and help have no upsell (E2E asserts no "premium" text); ☐ policy enforced in P5 code review | Product | Mitigated |
-| R-12 | AI gives unsafe advice / drug instructions / dosages | 3 | 5 | ✔ AI disabled (`ai_enabled=false`); ☐ safety layer, refusal policy, red-team test suite, rate limiting, disclosures before enabling | AI lead | **LB-03** |
+| R-12 | AI gives unsafe advice / drug instructions / dosages | 3 | 5 | ✔ AI disabled by server flag; ✔ deterministic crisis/policy layer on device + server; ✔ system prompt; ✔ output validation; ✔ 112 adversarial unit cases + handler/E2E tests (mock); ☐ red-team evaluation of a real model; ☐ clinical review of crisis copy | AI lead | **LB-03** |
 | R-13 | Unmoderated community enables dealing / harm | 3 | 5 | ✔ community disabled by flag at RLS level (tested); posts enter as `pending`; report reasons incl. drug sales & dealer contact; ☐ moderation readiness review | Trust & Safety | 🔒 Disabled |
 | R-14 | Wrong support directory details | 2 | 4 | ✔ source URL + date per entry; ✔ no invented providers; ☐ human verification against live pages | Content | **LB-04** |
 | R-15 | Minors using the app | 3 | 3 | ✔ 18+ confirmation required to create a profile; ✔ youth line 116 111 shown; SOS stays open to all; ☐ legal review of age limit | Legal | Open |
@@ -24,3 +24,12 @@ Scoring: Likelihood (L) and Impact (I) 1–5. Status: Open / Mitigated (in code)
 | R-18 | Account deletion leaves residual data | 2 | 4 | ✔ all user tables cascade from `auth.users`; `delete_my_account()` tested; ☐ backups retention & store-subscription cancellation before delete (P5) | Engineering | Mitigated (DB) |
 | R-19 | CSP allows inline scripts | 2 | 3 | ☐ nonce-based CSP via proxy | Security | Open |
 | R-20 | Supabase integration untested against live project | 3 | 3 | ☐ staging project + integration tests | Engineering | Open |
+| R-21 | Educational content contains inaccurate or outdated medical statements | 3 | 4 | ✔ all 62 articles marked "Venter på faglig gjennomgang" in UI; ✔ validator forbids dosages, guarantees, "permanent brain damage", invented numbers; ✔ sources limited to verified registry; ☐ clinical review (CLINICAL_REVIEW.md) | Clinical lead | **LB-01** |
+| R-22 | Pattern insights misread as causal or predictive ("I will relapse tonight") | 2 | 4 | ✔ descriptive wording only, minimum-observation thresholds, explicit limitation text, no predictions, no score | Product | Mitigated |
+| R-23 | AI rate limiting/budget are in-memory (single instance) | 3 | 3 | ☐ shared store before enabling AI in production | Engineering | Open (AI disabled) |
+| R-24 | Deterministic crisis detection misses a phrasing (false negative) | 2 | 5 | ✔ broad patterns incl. dialect/no-æøå; ✔ bias to over-triggering; ✔ SOS always one tap away; ☐ ongoing corpus expansion with clinicians and people with lived experience | AI lead | Open |
+| R-25 | Journal / AI content leaks via logs, analytics or AI | 2 | 5 | ✔ journal never sent anywhere (E2E asserts no request contains journal text); ✔ AI context excludes journal; ✔ no analytics; ✔ server logs only codes | Security | Mitigated |
+| R-26 | Local data readable on shared/stolen device (localStorage unencrypted) | 3 | 4 | ✔ honest documentation; ✔ optional passphrase encryption; ✔ delete-all; ☐ native secure storage | Security | Partly mitigated |
+| R-27 | User forgets passphrase and loses data | 2 | 3 | ✔ explicit acknowledgement + export-first prompt; ✔ clear reset path | Product | Accepted |
+| R-28 | Offline cache serves stale safety information | 2 | 3 | ✔ network-first for pages, cache only as fallback; new build → new cache name | Engineering | Mitigated |
+| R-29 | Planner reminders expected but not delivered | 2 | 2 | ✔ UI states reminders come later | Product | Accepted |

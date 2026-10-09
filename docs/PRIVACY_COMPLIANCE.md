@@ -14,6 +14,9 @@
 | P6 | Aggregate statistics | counts only, k ≥ 10 | Postgres function | 6(1)(f) legitimate interest (LIA required) | aggregated → no longer personal if properly anonymised; confirm in DPIA | DB function implemented |
 | P7 | Push notifications | push token, times | Supabase + Expo | 6(1)(a) | none if content neutral | Planned |
 | P8 | Community | posts (may reveal health data) | Supabase | 6(1)(a) | 9(2)(a) / 9(2)(e) – to be assessed | Disabled |
+| P9 | Journal, triggers, craving log, planner, personal plan, reading history (Phase 3) | free text, emotions, mood, cravings, triggers (location labels, no GPS) | **device only** | as P1 | – | Live (local) – cloud sync requires separate explicit opt-in **and a separate privacy review** for journal content |
+| P10 | AI chat messages (Phase 3) | message text, optional minimal context (goal, substance, days) | device + server + AI provider (transient) | 6(1)(a) consent | 9(2)(a) explicit consent (`ai_coach`) – **legal review required** whether consent is adequate | Built, **disabled** |
+| P11 | Optional local encryption | passphrase-derived key in memory | device only | n/a (security measure) | – | Live (opt-in) |
 
 \* Even for P1 the product must be transparent (privacy notice) and the data must be protected by design. Confirm with counsel whether any controller processing occurs (e.g. hosting logs).
 
@@ -46,3 +49,8 @@
 | Medical device regulation (MDR) qualification – app must not diagnose/treat; confirm wellness positioning | ☐ legal/regulatory review |
 | Consumer protection for subscriptions: clear price (69 kr/mnd), easy cancellation | ☐ P5 |
 | Lock-screen privacy for notifications | ✅ default off in schema |
+| Journal excluded from logs, telemetry, AI | ✅ (no telemetry exists; AI context builder excludes journal – unit-tested; E2E asserts no outgoing request contains journal text) |
+| AI: explicit opt-in, data-processing explanation, minimisation, server-side keys, retention (device only), disable & delete | ✅ built; ☐ DPA with provider, transfer assessment, DPIA entry before enabling |
+| Consent withdrawal for AI | ✅ device; ✅ DB policy blocks new AI messages after withdrawal (RLS-tested) |
+| Local storage security assessment | ✅ docs/LOCAL_DATA_SECURITY.md (localStorage is not encrypted; optional passphrase encryption) |
+| GPS / location data | ✅ never collected; trigger locations are user labels only; no coordinate columns (tested) |

@@ -35,7 +35,9 @@ insert into public.achievements (id, kind, threshold_hours, sort_order) values
   ('first_craving_exercise', 'activity', null, 102),
   ('first_savings_goal', 'activity', null, 103),
   ('trusted_contact_saved', 'activity', null, 104),
-  ('first_plan_step', 'activity', null, 105)
+  ('first_plan_step', 'activity', null, 105),
+  ('first_journal_entry', 'activity', null, 106),
+  ('weekly_goal_reached', 'activity', null, 107)
 on conflict (id) do update set kind = excluded.kind, threshold_hours = excluded.threshold_hours, sort_order = excluded.sort_order;
 
 insert into public.support_resources (id, name, category, description, phone, website, chat_url, hours, coverage, eligibility, source_url, verified_on, verification) values

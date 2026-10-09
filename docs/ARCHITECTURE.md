@@ -1,7 +1,7 @@
 # NY START – Architecture overview
 
-> Status: Phase 1 (architecture) complete, Phase 2 (core application) implemented for **web**.
-> Last updated: 2026-10-08.
+> Status: Phases 1–2 complete; Phase 3 (education, journal, triggers, planner, AI foundation) implemented for **web**. AI disabled.
+> Last updated: 2026-10-09.
 
 ## 1. Goals that drive the architecture
 
@@ -46,16 +46,25 @@ apps/web/              Next.js 16 App Router web app (mobile-first, PWA manifest
     page.tsx           Hjem (dashboard)
     fremgang/          Fremgang + /registrer (relapse/use flow)
     sos/               SOS (server-rendered emergency panel + client tools)
-    coach/             AI placeholder (honest "not available")
+    coach/             Min AI-støtte (disabled unless server flag; consent, crisis routing)
+    verktoy/           Verktøy hub, dagbok/, triggere/, plan/ (+ min-plan/)
+    laer/              Kunnskapssenter, kategori/[id], [slug] (static, offline-cached)
     profil/            Profile, preferences, data rights, account
     mal/               Plan + savings goals
     hjelp/             Verified support directory
     logg-inn/          Supabase sign-in (only when configured)
   src/components/      UI primitives (ui/), dashboard/, sos/, savings/
   src/lib/             store (local-first), storage, i18n, supabase/, clock
+  src/app/api/ai/      chat + status route handlers (server-side AI only)
+  src/app/sw.js/       generated service worker (offline: static pages only)
+  src/lib/server/ai/   AI config, provider (Anthropic SDK), request handler
+  src/lib/crypto.ts    optional passphrase encryption (WebCrypto)
   src/proxy.ts         Next 16 proxy: Supabase session refresh (no-op if unconfigured)
   e2e/                 Playwright + axe end-to-end tests
 packages/core/         Domain logic shared by all clients (unit tested)
+  src/tools/           journal, triggers & coping, pattern analysis, planner, education state
+  src/education/       article schema, index, 62 articles, verified sources, validator, search
+  src/ai/              deterministic safety layer, policy, provider interface, rate limiting
 supabase/migrations/   SQL schema, RLS policies, data-rights & admin functions
 supabase/seed.sql      GENERATED from @nystart/core catalogues
 supabase/tests/        Runs migrations on a throw-away PostgreSQL and tests RLS
@@ -89,6 +98,24 @@ The AI coach will not be enabled until a rule-based crisis classifier (suicidali
 
 ### ADR-007 Typed i18n without a runtime dependency
 `createTranslator()` with typed keys, plural rules via `Intl.PluralRules`, `Intl.NumberFormat('nb-NO')` for currency. Adding English = add `en.ts` satisfying `LocaleMessages` (compile-time checked).
+
+### ADR-008 Local state v2 with additive migration
+Phase 3 adds journal, triggers, planner, education and AI state. `STATE_VERSION` = 2; `migrateState()` adds empty structures to v1 data and changes nothing else (unit- and E2E-tested with a real v1 save). Unknown future versions are rejected rather than guessed.
+
+### ADR-009 Educational content bundled, not in the database
+Articles are TypeScript data in `@nystart/core`, validated at test time (structure, wording rules, phone numbers, sources, review honesty) and pre-rendered as static pages. Benefits: offline reading, version-controlled clinical review, no runtime dependency on a CMS or AI. Review status per article; only `approved` with a documented reviewer and date may be shown as reviewed.
+
+### ADR-010 Deterministic insights and safety, never AI-dependent
+Pattern analysis and coping suggestions are pure functions with minimum-observation thresholds and descriptive wording. Crisis detection is deterministic and runs on the device and the server before any model call.
+
+### ADR-011 AI behind a server flag and a provider abstraction
+`AI_COACH_ENABLED` (server env) is the only switch; the browser cannot enable AI. Providers: mock (tests/test mode), disabled, Anthropic (server-side key). The route enforces origin, size, schema, consent version, rate and budget limits, validates outputs and never logs message content. See AI_SAFETY.md.
+
+### ADR-012 Optional local encryption, opt-in only
+Default storage stays plain `localStorage` (documented as unencrypted). Users may opt into AES-GCM encryption with a passphrase; the key lives only in memory; there is no recovery. Locked stores refuse writes. See LOCAL_DATA_SECURITY.md.
+
+### ADR-013 Offline via a generated service worker
+`/sw.js` is generated at build time with the list of essential pages (SOS, help, Kunnskapssenter, essential articles). Network-first for pages, cache-first for hashed assets, `/api/*` never cached. Cached pages contain no personal data.
 
 ## 5. Data flow (Phase 2)
 

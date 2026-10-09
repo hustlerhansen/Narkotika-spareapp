@@ -19,7 +19,15 @@ pnpm test:e2e            # Playwright (builds must exist: run pnpm build first)
 ```
 
 ## Environment variables
-See `.env.example`. Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read today; when both are set, sign-in is enabled and the CSP `connect-src` allows that origin.
+See `.env.example`.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` – optional accounts (CSP `connect-src` follows).
+- `AI_COACH_ENABLED` (server-only, default off), `AI_PROVIDER` (`mock`/`anthropic`), `ANTHROPIC_API_KEY`, `AI_MODEL`, `AI_RATE_PER_MINUTE`, `AI_DAILY_LIMIT`. **Keep AI disabled in production** until LB-03 is closed.
+
+## Offline
+The service worker (`/sw.js`) is generated at build time and registered in production builds only. It caches static pages and build assets, never `/api/*`.
+
+## E2E
+`pnpm test:e2e` starts two production servers: port 3100 (AI disabled) and 3101 (AI enabled with the **mock** provider, used only by `*.ai-enabled.spec.ts`).
 
 ## Supabase (when enabling accounts)
 1. Create a project in an **EU region**.
