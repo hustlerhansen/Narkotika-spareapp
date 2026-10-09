@@ -40,7 +40,9 @@ const CRISIS_RULES: Rule[] = [
   // Suicide
   { category: "suicide", level: "emergency", re: / selvmord/ },
   { category: "suicide", level: "emergency", re: / (ta|tar|tatt) (livet (mitt|av meg)|mitt eget liv)/ },
-  { category: "suicide", level: "emergency", re: / (drepe|drep) meg (selv )?/ },
+  // "drepe meg" alone can be a threat from someone else ("han truer med å drepe meg") → danger rules below.
+  { category: "suicide", level: "emergency", re: / (drepe|drep) meg selv/ },
+  { category: "suicide", level: "emergency", re: / (jeg )?(vil|skal|kommer til a|tenker pa a|lyst til a|har lyst a) (drepe|drep) meg/ },
   { category: "suicide", level: "emergency", re: / (avslutte|ende|avslutter|ender) (livet|det hele|alt)/ },
   { category: "suicide", level: "emergency", re: / (vil|onsker a|lyst til a|har lyst a) (do|vaere dod|ikke leve|slippe a leve)/ },
   { category: "suicide", level: "emergency", re: / (orker|klarer|gidder) ikke (a )?(leve|vaere til|mer av livet)/ },
@@ -49,6 +51,9 @@ const CRISIS_RULES: Rule[] = [
   { category: "suicide", level: "emergency", re: / (hoppe|kaste meg) (foran|ut fra|ut av|ned fra)/ },
   { category: "suicide", level: "emergency", re: / (skal|vil|kommer til a) ta en overdose/ },
   { category: "suicide", level: "emergency", re: / (bedre for alle|bedre for alle andre) (om|hvis) jeg (var borte|var dod|dor|ikke fantes)/ },
+  // Perceived burdensomeness ("alle hadde hatt det bedre uten meg").
+  { category: "suicide", level: "emergency", re: / (hatt det|hadde det|fatt det|vaert|vaere) bedre uten meg/ },
+  { category: "suicide", level: "emergency", re: / (alle|familien|barna|de) (hadde|ville|vil) (klart seg|hatt det) bedre (uten meg|om jeg var borte|hvis jeg var borte)/ },
   { category: "suicide", level: "emergency", re: / (kill myself|suicid|end my life|want to die|dont want to live)/ },
   // Self-harm
   { category: "self_harm", level: "emergency", re: / (kutte|kutter|skjaere|skjaerer|brenne|brenner|skade|skader) meg (selv )?/ },
@@ -114,6 +119,8 @@ const POLICY_RULES: { category: PolicyCategory; re: RegExp }[] = [
   { category: "drug_info", re: new RegExp(` ${DRUG} .*(hvor (kan jeg |)(kjope|fa tak)|hvordan (lage|koke|royke|sniffe|injisere|blande)|tryggeste mate a|beste mate a (ta|bruke|royke))`) },
   { category: "drug_info", re: new RegExp(` (tryggeste|beste|sikreste|enkleste) (mate|maten) a (ta|bruke|royke|sniffe|snorte|injisere|blande|lage|koke) .*${DRUG}`) },
   { category: "drug_info", re: / (koke crack|lage crack|cooke|cook crack|freebase|dealer|langer|plug|selger) / },
+  // Injection technique (clean-equipment questions are NOT matched: "hvor får jeg rene sprøyter" goes to the model).
+  { category: "drug_info", re: / hvordan (setter|sette|skyter|skyte|treffer|treffe) (jeg |man |en |du |)(en |et )?(sproyte|sproyten|skudd|shot|blodaren|blaren|aren)/ },
   { category: "drug_info", re: new RegExp(` (how (to|do i) (buy|get|make|cook|smoke|inject|use))`) },
 ];
 
