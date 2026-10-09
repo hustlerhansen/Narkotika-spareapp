@@ -19,7 +19,7 @@ export function AccountSection({ confirmed = false }: { confirmed?: boolean }) {
   const [busy, setBusy] = useState(false);
 
   async function exportAccountData() {
-    const supabase = getBrowserSupabase();
+    const supabase = await getBrowserSupabase();
     if (!supabase) return;
     setError(null);
     setBusy(true);
@@ -30,7 +30,7 @@ export function AccountSection({ confirmed = false }: { confirmed?: boolean }) {
   }
 
   async function deleteAccount() {
-    const supabase = getBrowserSupabase();
+    const supabase = await getBrowserSupabase();
     if (!supabase) return;
     setBusy(true);
     const { error: rpcError } = await supabase.rpc("delete_my_account");
@@ -70,7 +70,7 @@ export function AccountSection({ confirmed = false }: { confirmed?: boolean }) {
           <ButtonLink href="/nytt-passord" variant="secondary">
             {t.t("account.changePassword")}
           </ButtonLink>
-          <Button variant="secondary" onClick={() => getBrowserSupabase()?.auth.signOut()}>
+          <Button variant="secondary" onClick={async () => (await getBrowserSupabase())?.auth.signOut()}>
             {t.t("profile.signOut")}
           </Button>
           {confirmDelete ? (

@@ -30,6 +30,12 @@ export function SavingsCard({ summary }: { summary: SavingsSummary }) {
             {t.t("savings.title")}
           </Link>
         </p>
+      ) : null}
+      {summary.hasBaseline ? (
+        <details className="text-sm">
+          <summary className="tap cursor-pointer font-semibold text-primary">{t.t("savingsHow.summary")}</summary>
+          <p className="mt-1 text-muted">{t.t("savingsHow.body", { rate: t.formatCurrency(Math.round(summary.dailyRate)) })}</p>
+        </details>
       ) : (
         <Link href="/profil#rusmidler" className="text-sm font-semibold text-primary underline">
           {t.t("dashboard.addBaseline")}

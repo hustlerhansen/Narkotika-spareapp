@@ -19,7 +19,7 @@ import type {
   UsageFrequency,
   UserSubstance,
 } from "./model";
-import { createEmptyState } from "./model";
+import { createEmptyState, DAY_STATUSES, type DayStatus } from "./model";
 import { generateRecoveryPlan, modeForGoal } from "./plan";
 import { currentPeriod, periodsFor } from "./recovery";
 import {
@@ -369,10 +369,12 @@ export function correctCurrentStart(
 
 export function upsertCheckin(
   state: AppState,
-  input: { date: string; mood: MoodScore; craving: number; note?: string },
+  input: { date: string; mood: MoodScore; craving: number; note?: string; dayStatus?: DayStatus },
   ctx: ActionContext,
 ): AppState {
   assert(isDateKey(input.date), "invalid_input");
+  assert(input.dayStatus === undefined || (DAY_STATUSES as readonly string[]).includes(input.dayStatus), "invalid_input");
+  const dayStatus = input.dayStatus;
   const mood = parseOr<MoodScore>(moodSchema, input.mood);
   const craving = parseOr<number>(cravingSchema, input.craving);
   const nowIso = ctx.now.toISOString();
@@ -381,12 +383,12 @@ export function upsertCheckin(
   if (existing) {
     return {
       ...state,
-      checkins: state.checkins.map((c) => (c.id === existing.id ? { ...c, mood, craving, note, updatedAt: nowIso } : c)),
+      checkins: state.checkins.map((c) => (c.id === existing.id ? { ...c, mood, craving, note, dayStatus, updatedAt: nowIso } : c)),
     };
   }
   return {
     ...state,
-    checkins: [...state.checkins, { id: ctx.newId(), date: input.date, mood, craving, note, createdAt: nowIso, updatedAt: nowIso }],
+    checkins: [...state.checkins, { id: ctx.newId(), date: input.date, mood, craving, note, dayStatus, createdAt: nowIso, updatedAt: nowIso }],
   };
 }
 

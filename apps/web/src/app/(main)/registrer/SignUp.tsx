@@ -24,7 +24,7 @@ export function SignUp() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const supabase = getBrowserSupabase();
+    const supabase = await getBrowserSupabase();
     if (!supabase) return;
     const invalid = validateSignUp({ email, password, repeat, adult, terms });
     if (invalid) return setMessage({ ok: false, text: t.t(`account.${invalid}`) });

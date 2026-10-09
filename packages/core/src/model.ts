@@ -127,9 +127,17 @@ export interface DailyCheckin {
   /** 0 = no craving, 10 = strongest imaginable. */
   craving: number;
   note?: string;
+  /**
+   * Optional self-report (Phase 4): "drug_free" = I did not use today, "used" = I used today.
+   * Never required and never scored; "used" only offers calm next steps.
+   */
+  dayStatus?: DayStatus;
   createdAt: string;
   updatedAt: string;
 }
+
+export const DAY_STATUSES = ["drug_free", "used"] as const;
+export type DayStatus = (typeof DAY_STATUSES)[number];
 
 export const SAVINGS_GOAL_CATEGORIES = [
   "vacation",

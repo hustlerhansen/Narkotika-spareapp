@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   getSubstance,
+  justReachedMilestone,
   localDateKey,
   nextMilestone,
   periodsFor,
@@ -24,6 +25,7 @@ import { ReductionCard } from "@/components/dashboard/ReductionCard";
 import { SosCallout } from "@/components/dashboard/SosCallout";
 import { TodayCard } from "@/components/dashboard/TodayCard";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { MilestoneReachedCard } from "@/components/dashboard/MilestoneReachedCard";
 import { Card } from "@/components/ui/Card";
 import { useNow } from "@/lib/use-now";
 import { useT } from "@/lib/i18n";
@@ -90,11 +92,20 @@ function PrimaryTracker({ state, substance, now }: { state: AppState; substance:
         </Card>
       )}
       {substance.mode === "exploring" && <p className="-mt-2 text-sm text-muted">{t.t("dashboard.exploring.body")}</p>}
+      {showMilestones && substance.mode === "abstinence" && stats.currentStartedAt && (
+        <JustReached substanceId={substance.substanceId} currentMs={stats.currentMs} startedAt={stats.currentStartedAt} />
+      )}
       {showMilestones && substance.mode === "abstinence" && (
         <NextMilestoneCard next={nextMilestone(getSubstance(substance.substanceId).milestoneThresholdsMs, stats.currentMs)} />
       )}
     </>
   );
+}
+
+function JustReached({ substanceId, currentMs, startedAt }: { substanceId: UserSubstance["substanceId"]; currentMs: number; startedAt: string }) {
+  const reached = justReachedMilestone(getSubstance(substanceId).milestoneThresholdsMs, currentMs);
+  if (reached === null) return null;
+  return <MilestoneReachedCard key={`${startedAt}:${reached}`} thresholdMs={reached} periodStartedAt={startedAt} />;
 }
 
 function OtherSubstances({ state, now, primaryId }: { state: AppState; now: Date; primaryId?: string }) {

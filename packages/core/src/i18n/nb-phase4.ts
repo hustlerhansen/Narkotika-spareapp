@@ -96,6 +96,28 @@ export const nbPhase4 = {
     ],
     version: "Versjon: utkast 2026-10 (betaperiode)",
   },
+  dayCheck: {
+    legend: "Har du vært rusfri i dag? (valgfritt)",
+    drugFree: "Ja, rusfri i dag",
+    used: "Nei, jeg har brukt",
+    noAnswer: "Vil ikke svare",
+    drugFreeDone: "Rusfri i dag. Én dag av gangen – det teller.",
+    drugFreeCount: { one: "Du har markert {count} rusfri dag.", other: "Du har markert {count} rusfrie dager." },
+    usedTitle: "Takk for at du er ærlig med deg selv",
+    usedBody: "Å bruke igjen visker ikke ut fremgangen din. Det du har lært, har du fortsatt. Du bestemmer selv om du vil registrere det.",
+    usedRegister: "Registrer bruk",
+    usedSupport: "Få støtte nå",
+  },
+  savingsHow: {
+    summary: "Slik regner vi ut",
+    body: "Omtrent {rate} per dag, ut fra det du oppga at du brukte før. Bare tid uten registrert bruk telles med. Det er et anslag, ikke penger på konto – men det viser hva du gir deg selv.",
+  },
+  milestoneReached: {
+    title: "Du har nådd {label}",
+    body: "Det er verdt å stoppe opp og legge merke til. Uansett hva som skjer videre, kan ingen ta fra deg at du kom hit.",
+    dismiss: "Takk",
+    seeAll: "Se milepælene dine",
+  },
   pwa: {
     offline: "Du er uten nett. SOS, nødnumre, dine egne data og lagrede artikler fungerer fortsatt.",
     backOnline: "Du er på nett igjen.",

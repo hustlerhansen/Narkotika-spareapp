@@ -21,7 +21,7 @@ export function NewPassword() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const supabase = getBrowserSupabase();
+    const supabase = await getBrowserSupabase();
     if (!supabase) return;
     const invalid = validatePassword(password, repeat);
     if (invalid) return setMessage({ ok: false, text: t.t(`account.${invalid}`) });

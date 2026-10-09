@@ -1,14 +1,16 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabaseConfig } from "../config";
 
-let client: SupabaseClient | null = null;
+let client: Promise<SupabaseClient> | null = null;
 
-/** Browser Supabase client (anon key + RLS). Returns null when cloud accounts are not configured. */
-export function getBrowserSupabase(): SupabaseClient | null {
-  if (!isSupabaseConfigured) return null;
-  client ??= createBrowserClient(supabaseConfig.url, supabaseConfig.anonKey);
+/**
+ * Browser Supabase client (anon key + RLS), loaded on demand so people who never use an account
+ * never download the Supabase library. Resolves to null when cloud accounts are not configured.
+ */
+export function getBrowserSupabase(): Promise<SupabaseClient | null> {
+  if (!isSupabaseConfigured) return Promise.resolve(null);
+  client ??= import("@supabase/ssr").then(({ createBrowserClient }) => createBrowserClient(supabaseConfig.url, supabaseConfig.anonKey));
   return client;
 }

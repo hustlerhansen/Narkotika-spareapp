@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { localDateKey, upsertCheckin, type DailyCheckin, type MoodScore } from "@nystart/core";
+import { localDateKey, reportedDrugFreeDays, upsertCheckin, type DailyCheckin, type DayStatus, type MoodScore } from "@nystart/core";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Field, TextArea } from "@/components/ui/Field";
@@ -23,6 +23,7 @@ export function CheckinCard({ checkins, now }: { checkins: DailyCheckin[]; now: 
   const [mood, setMood] = useState<MoodScore | undefined>(existing?.mood);
   const [craving, setCraving] = useState<number>(existing?.craving ?? 0);
   const [note, setNote] = useState(existing?.note ?? "");
+  const [dayStatus, setDayStatus] = useState<DayStatus | undefined>(existing?.dayStatus);
   const [error, setError] = useState<string | null>(null);
 
   function save() {
@@ -30,7 +31,7 @@ export function CheckinCard({ checkins, now }: { checkins: DailyCheckin[]; now: 
       setError(t.t("errors.invalid_input"));
       return;
     }
-    const r = store.apply((s, ctx) => upsertCheckin(s, { date: today, mood, craving, note }, ctx));
+    const r = store.apply((s, ctx) => upsertCheckin(s, { date: today, mood, craving, note, dayStatus }, ctx));
     if (r.ok) {
       setEditing(false);
       setError(null);
@@ -47,6 +48,11 @@ export function CheckinCard({ checkins, now }: { checkins: DailyCheckin[]; now: 
           <p className="text-muted">
             {t.tDynamic(`checkin.moods.${existing.mood}`)} · {t.t("checkin.cravingValue", { value: existing.craving })}
           </p>
+          {existing.dayStatus === "drug_free" && (
+            <p className="font-medium text-success">
+              {t.t("dayCheck.drugFreeDone")} {t.tp("dayCheck.drugFreeCount", reportedDrugFreeDays(checkins))}
+            </p>
+          )}
           <Button variant="secondary" onClick={() => setEditing(true)}>
             {t.t("checkin.update")}
           </Button>
@@ -97,6 +103,23 @@ export function CheckinCard({ checkins, now }: { checkins: DailyCheckin[]; now: 
               </output>
             </div>
           </div>
+          <fieldset>
+            <legend className="font-medium">{t.t("dayCheck.legend")}</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {([["drug_free", "dayCheck.drugFree"], ["used", "dayCheck.used"], [undefined, "dayCheck.noAnswer"]] as const).map(([value, key]) => (
+                <label
+                  key={key}
+                  className={cx(
+                    "tap inline-flex cursor-pointer items-center rounded-full border-2 px-4 py-2 font-medium",
+                    dayStatus === value ? "border-primary bg-primary text-on-primary" : "border-border bg-surface hover:border-muted",
+                  )}
+                >
+                  <input type="radio" name="dayStatus" checked={dayStatus === value} onChange={() => setDayStatus(value)} className="sr-only" />
+                  {t.t(key)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <Field label={t.t("checkin.note")}>
             {(p) => <TextArea {...p} maxLength={4000} value={note} onChange={(e) => setNote(e.target.value)} />}
           </Field>
@@ -107,6 +130,20 @@ export function CheckinCard({ checkins, now }: { checkins: DailyCheckin[]; now: 
           )}
           <Button onClick={save}>{t.t("checkin.submit")}</Button>
         </>
+      )}
+      {existing && !editing && existing.dayStatus === "used" && (
+        <div role="status" className="rounded-2xl border-l-4 border-primary bg-surface-2 p-4">
+          <p className="font-semibold">{t.t("dayCheck.usedTitle")}</p>
+          <p className="mt-1">{t.t("dayCheck.usedBody")}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <ButtonLink href="/fremgang/registrer" variant="secondary">
+              {t.t("dayCheck.usedRegister")}
+            </ButtonLink>
+            <ButtonLink href="/sos" variant="secondary">
+              {t.t("dayCheck.usedSupport")}
+            </ButtonLink>
+          </div>
+        </div>
       )}
       {showSupport && (
         <div role="status" className="rounded-2xl border-l-4 border-danger bg-danger-soft p-4">

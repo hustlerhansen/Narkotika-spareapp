@@ -17,7 +17,7 @@ export function ForgotPassword() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const supabase = getBrowserSupabase();
+    const supabase = await getBrowserSupabase();
     if (!supabase) return;
     if (!isPlausibleEmail(email)) return setMessage({ ok: false, text: t.t("account.errorRequired") });
     setBusy(true);

@@ -41,6 +41,15 @@ export function evaluateTimeMilestones(
   });
 }
 
+/**
+ * The milestone reached most recently in the current period, if it was reached within `windowMs`
+ * (default 48 h). Used for a calm, dismissible acknowledgement – never for pressure.
+ */
+export function justReachedMilestone(thresholdsMs: readonly number[], currentMs: number, windowMs = 2 * DAY_MS): number | null {
+  const reached = thresholdsMs.filter((t) => t <= currentMs && currentMs - t <= windowMs);
+  return reached.length ? Math.max(...reached) : null;
+}
+
 export interface NextMilestone {
   thresholdMs: number;
   remainingMs: number;

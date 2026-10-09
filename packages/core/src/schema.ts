@@ -84,6 +84,7 @@ export const dailyCheckinSchema = z.object({
   mood: moodSchema,
   craving: cravingSchema,
   note: longText.optional(),
+  dayStatus: z.enum(["drug_free", "used"]).optional(),
   createdAt: iso,
   updatedAt: iso,
 });
