@@ -2,6 +2,28 @@
 
 All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/), dates ISO-8601.
 
+## [0.2.0] – 2026-10-09 – Phase 3: Recovery Companion
+
+### Added
+- **Kunnskapssenter**: 62 original Norwegian articles in 7 categories (20 on crack/cocaine) with review status (all *awaiting clinical review*), reading time, key takeaways, coping tips, related articles, help resources and verified sources; search, categories, bookmarks, recently read, reading progress, text-size controls; offline service worker for SOS, help and essential articles.
+- **Min dagbok**: guided prompts, mood 1–10, emotions, craving, tags, important, search and filters, edit/delete, JSON and text export, delete all. Local only.
+- **Mine triggere**: emotion/situation/location (label only, no GPS)/physical/custom triggers, craving log, deterministic pattern analysis with thresholds and stated limits, coping strategy library with favourites, custom strategies and feedback-based suggestions.
+- **Min plan**: daily tasks (time, category, daily/weekly recurrence, per-occurrence completion, stop repeating), weekly goals without penalties, 8-step personal recovery plan, descriptive overview (no score); "I dag" card on the dashboard.
+- **Min AI-støtte** (disabled by default): server flag, provider abstraction (mock / Anthropic), deterministic crisis & policy layer on device and server, output validation, consent, minimal opt-in personalisation, rate limit & daily budget, delete conversation, withdraw consent.
+- **Optional passphrase encryption** of local data with lock screen; SOS works while locked.
+- Navigation: I dag · Min utvikling · SOS · Verktøy · Lær; profile in the header.
+- Database: Phase 3 migrations (journal fields, trigger model, craving↔trigger links, coping strategies, task completions, weekly goals, personal plan, article activity, `ai_coach` consent with RLS enforcement, export v2).
+- Docs: AI_SAFETY, LOCAL_DATA_SECURITY, CLINICAL_REVIEW, PHASE_3_COMPLETION_REPORT; screenshots.
+
+### Changed
+- Local state version 2 with additive migration from version 1 (existing data preserved).
+- Journal mood scale 1–10 in the database (check-ins keep 1–5).
+- `/coach` now shows "Min AI-støtte" with an explicit disabled state.
+- Craving log hides optional details by default to keep the screen calm.
+
+### Tests
+- 220 core, 34 web unit, 105 database, 65 end-to-end (all passing).
+
 ## [0.1.0] – 2026-10-08 – Phase 1 & 2 foundation
 
 ### Added
