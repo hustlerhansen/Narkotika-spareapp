@@ -9,6 +9,7 @@
  * (docs/RISK_REGISTER.md, R-03).
  */
 import { nbTools } from "./nb-tools";
+import { nbPhase4 } from "./nb-phase4";
 
 export const nb = {
   app: {
@@ -532,20 +533,6 @@ export const nb = {
     deleteAccountConfirm: "Slette kontoen permanent? Dette kan ikke angres. Data på denne enheten påvirkes ikke.",
     sharedDeviceWarning: "Bruker du en delt enhet? Andre med tilgang til enheten kan se det du lagrer her.",
   },
-  auth: {
-    title: "Logg inn",
-    signUpTitle: "Opprett konto",
-    email: "E-post",
-    password: "Passord",
-    passwordHint: "Minst 10 tegn.",
-    submitSignIn: "Logg inn",
-    submitSignUp: "Opprett konto",
-    switchToSignUp: "Har du ikke konto? Opprett en",
-    switchToSignIn: "Har du allerede konto? Logg inn",
-    notConfigured: "Innlogging er ikke aktivert i denne versjonen. Du kan bruke hele appen uten konto – dataene lagres på enheten.",
-    checkEmail: "Sjekk e-posten din for å bekrefte kontoen.",
-    error: "Innloggingen mislyktes. Sjekk e-post og passord.",
-  },
   errors: {
     generic: "Noe gikk galt. Prøv igjen.",
     storageUnavailable: "Appen får ikke lagret data på denne enheten (for eksempel i privat nettlesing). Du kan fortsatt bruke SOS og hjelpetelefoner.",
@@ -601,6 +588,7 @@ export const nb = {
     "En ny dag. En ny mulighet.",
   ],
   ...nbTools,
+  ...nbPhase4,
 } as const;
 
 export type NbMessages = typeof nb;

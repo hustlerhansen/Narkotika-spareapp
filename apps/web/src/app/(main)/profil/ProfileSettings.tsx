@@ -37,7 +37,7 @@ import { Field, Select, TextArea, TextInput } from "@/components/ui/Field";
 import { useT } from "@/lib/i18n";
 import { store, useStore, type ActionResult } from "@/lib/store";
 import { fromLocalInputValue, toLocalInputValue } from "@/lib/datetime";
-import { AccountSection } from "./AccountSection";
+import { AccountCard } from "./AccountSection";
 import { DataProtectionSection } from "./DataProtectionSection";
 import { LockScreen } from "@/components/LockScreen";
 
@@ -95,7 +95,7 @@ export function ProfileSettings() {
         </>
       )}
       <DataProtectionSection />
-      <AccountSection />
+      <AccountCard />
       <DataSection />
     </div>
   );

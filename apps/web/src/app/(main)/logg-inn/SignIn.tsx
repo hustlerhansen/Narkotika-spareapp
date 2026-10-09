@@ -1,93 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authErrorKey, validateSignIn } from "@nystart/core";
+import { AuthPage, FormMessageView, type FormMessage } from "@/components/auth/AuthParts";
 import { Button } from "@/components/ui/Button";
-import { Card, PageHeader } from "@/components/ui/Card";
 import { Field, TextInput } from "@/components/ui/Field";
-import { Notice } from "@/components/ui/Notice";
-import { isSupabaseConfigured } from "@/lib/config";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n";
 
 export function SignIn() {
   const t = useT();
   const router = useRouter();
-  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
+  const linkFailed = useSearchParams().get("konto") === "lenke";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [message, setMessage] = useState<FormMessage>(linkFailed ? { ok: false, text: t.t("account.errorLink") } : null);
   const [busy, setBusy] = useState(false);
-
-  if (!isSupabaseConfigured) {
-    return (
-      <div className="flex flex-col gap-4">
-        <PageHeader title={t.t("auth.title")} />
-        <Notice title={t.t("profile.account")} tone="info">
-          {t.t("auth.notConfigured")}
-        </Notice>
-      </div>
-    );
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const supabase = getBrowserSupabase();
     if (!supabase) return;
-    if (password.length < 10) {
-      setMessage({ ok: false, text: t.t("auth.passwordHint") });
-      return;
-    }
+    const invalid = validateSignIn({ email, password });
+    if (invalid) return setMessage({ ok: false, text: t.t(`account.${invalid}`) });
     setBusy(true);
     setMessage(null);
-    if (mode === "signIn") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      setBusy(false);
-      if (error) setMessage({ ok: false, text: t.t("auth.error") });
-      else router.push("/profil");
-    } else {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      setBusy(false);
-      if (error) setMessage({ ok: false, text: t.t("auth.error") });
-      else if (!data.session) setMessage({ ok: true, text: t.t("auth.checkEmail") });
-      else router.push("/profil");
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setBusy(false);
+    if (error) return setMessage({ ok: false, text: t.t(`account.${authErrorKey(error)}`) });
+    router.push("/profil");
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title={mode === "signIn" ? t.t("auth.title") : t.t("auth.signUpTitle")} intro={t.t("profile.syncNotActive")} />
-      <Card>
-        <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
-          <Field label={t.t("auth.email")}>
-            {(p) => <TextInput {...p} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-          </Field>
-          <Field label={t.t("auth.password")} hint={t.t("auth.passwordHint")}>
-            {(p) => (
-              <TextInput
-                {...p}
-                type="password"
-                autoComplete={mode === "signIn" ? "current-password" : "new-password"}
-                required
-                minLength={10}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            )}
-          </Field>
-          {message && (
-            <p role={message.ok ? "status" : "alert"} className={message.ok ? "font-medium text-success" : "font-medium text-danger"}>
-              {message.text}
-            </p>
-          )}
-          <Button type="submit" disabled={busy}>
-            {mode === "signIn" ? t.t("auth.submitSignIn") : t.t("auth.submitSignUp")}
-          </Button>
-          <Button variant="ghost" onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}>
-            {mode === "signIn" ? t.t("auth.switchToSignUp") : t.t("auth.switchToSignIn")}
-          </Button>
-        </form>
-      </Card>
-    </div>
+    <AuthPage title={t.t("account.signInTitle")} intro={t.t("account.intro")}>
+      <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
+        <Field label={t.t("account.email")}>
+          {(p) => <TextInput {...p} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
+        </Field>
+        <Field label={t.t("account.password")}>
+          {(p) => <TextInput {...p} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />}
+        </Field>
+        <FormMessageView message={message} />
+        <Button type="submit" disabled={busy}>
+          {t.t("account.submitSignIn")}
+        </Button>
+        <div className="flex flex-col gap-2 text-center">
+          <Link href="/glemt-passord" className="font-medium text-primary underline-offset-4 hover:underline">
+            {t.t("account.forgot")}
+          </Link>
+          <Link href="/registrer" className="font-medium text-primary underline-offset-4 hover:underline">
+            {t.t("account.toSignUp")}
+          </Link>
+        </div>
+      </form>
+    </AuthPage>
   );
 }
