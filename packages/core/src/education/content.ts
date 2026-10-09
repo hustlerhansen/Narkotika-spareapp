@@ -45,12 +45,13 @@ export function searchArticles(query: string, articles: readonly Article[] = all
     const title = normalize(a.title);
     const intro = normalize(a.intro);
     const body = normalize(
-      [...a.sections.flatMap((s) => [s.heading ?? "", ...s.paragraphs, ...(s.bullets ?? [])]), ...a.keyTakeaways].join(" "),
+      [...a.sections.flatMap((s) => [s.heading ?? "", ...s.paragraphs, ...(s.bullets ?? [])]), ...a.keyTakeaways, a.safetyNote ?? ""].join(" "),
     );
     let score = 0;
     let all = true;
     for (const w of words) {
-      const s = (title.includes(w) ? 5 : 0) + (intro.includes(w) ? 2 : 0) + (body.includes(w) ? 1 : 0);
+      const occurrences = Math.min(5, body.split(w).length - 1);
+      const s = (title.includes(w) ? 6 : 0) + (intro.includes(w) ? 2 : 0) + occurrences;
       if (s === 0) all = false;
       score += s;
     }

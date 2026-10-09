@@ -20,3 +20,4 @@ export * from "./education/types";
 export * from "./education/catalog";
 export * from "./education/sources";
 export * from "./education/content";
+export * from "./ai";
