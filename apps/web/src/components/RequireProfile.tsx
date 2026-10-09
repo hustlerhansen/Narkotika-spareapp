@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { AppState, Profile } from "@nystart/core";
 import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
+import { LockScreen } from "./LockScreen";
 
 /**
  * Renders children only for onboarded users. Others are sent to onboarding.
@@ -20,6 +21,7 @@ export function RequireProfile({ children }: { children: (state: AppState & { pr
     if (needsOnboarding) router.replace("/velkommen");
   }, [needsOnboarding, router]);
 
+  if (status === "locked") return <LockScreen />;
   if (status === "loading" || needsOnboarding) {
     return (
       <p className="py-16 text-center text-muted" role="status">

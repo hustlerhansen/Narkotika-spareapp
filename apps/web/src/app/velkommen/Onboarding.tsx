@@ -26,6 +26,7 @@ import { LogoMark } from "@/components/Logo";
 import { useT } from "@/lib/i18n";
 import { store, useStore } from "@/lib/store";
 import { toLocalInputValue } from "@/lib/datetime";
+import { LockScreen } from "@/components/LockScreen";
 
 type StepId = "welcome" | "substances" | "goal" | "safety" | "personal" | "motivation" | "plan";
 
@@ -79,7 +80,7 @@ export function Onboarding() {
 
   // Already onboarded → go to the dashboard.
   useEffect(() => {
-    if (status === "ready" && state.profile) router.replace("/");
+    if ((status === "ready" || status === "unavailable") && state.profile) router.replace("/");
   }, [status, state.profile, router]);
 
   // Move focus to the new step's heading for screen-reader users.
@@ -149,6 +150,14 @@ export function Onboarding() {
   }
 
   const toggle = <T,>(list: T[], value: T, on: boolean) => (on ? [...new Set([...list, value])] : list.filter((v) => v !== value));
+
+  if (status === "locked") {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <LockScreen />
+      </div>
+    );
+  }
 
   const progressLabel = stepIndex > 0 ? t.t("onboarding.progress", { step: stepIndex, total: steps.length - 1 }) : null;
 
