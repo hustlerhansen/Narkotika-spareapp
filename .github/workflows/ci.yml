@@ -75,3 +75,45 @@ jobs:
           name: playwright-report
           path: apps/web/test-results
           retention-days: 7
+
+  supabase:
+    name: Supabase stack (auth, RLS via PostgREST, export, deletion, account E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.120.0
+      - run: pnpm install --frozen-lockfile
+      - name: Start local Supabase (applies all migrations and the seed)
+        run: supabase start
+      - name: Lint database schema
+        run: supabase db lint --level warning --fail-on error
+      - name: Export local stack connection details (public demo keys of the throw-away stack)
+        run: supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=' | tr -d '"' >> "$GITHUB_ENV"
+      - run: pnpm test:integration
+      - name: Build web app against the local stack
+        run: pnpm --filter @nystart/web build
+        env:
+          NEXT_DIST_DIR: .next-supabase
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.API_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+      - name: Install Chromium for Playwright
+        run: pnpm --filter @nystart/web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:supabase
+        env:
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-supabase-report
+          path: apps/web/test-results
+          retention-days: 7
+      - if: always()
+        run: supabase stop --no-backup

@@ -27,6 +27,8 @@ const csp = [
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@nystart/core"],
+  // A second build with Supabase env (for account E2E tests) uses its own output directory.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {

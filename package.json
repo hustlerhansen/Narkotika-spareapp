@@ -13,6 +13,8 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r --filter @nystart/core --filter @nystart/web --filter @nystart/db-tests test",
     "test:db": "pnpm --filter @nystart/db-tests test",
-    "test:e2e": "pnpm --filter @nystart/web test:e2e"
+    "test:e2e": "pnpm --filter @nystart/web test:e2e",
+    "test:integration": "pnpm --filter @nystart/db-tests test:integration",
+    "test:e2e:supabase": "pnpm --filter @nystart/web test:e2e:supabase"
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authErrorKey, isPlausibleEmail, safeRedirectPath, validatePassword, validateSignIn, validateSignUp } from "./account";
+import { authErrorKey, isPlausibleEmail, safeRedirectPath, signUpErrorKey, validatePassword, validateSignIn, validateSignUp } from "./account";
 
 const valid = { email: "kari@example.no", password: "a-long-passphrase", repeat: "a-long-passphrase", adult: true, terms: true };
 
@@ -42,6 +42,15 @@ describe("authErrorKey", () => {
     expect(authErrorKey({ code: "same_password", status: 422 })).toBe("errorSamePassword");
     expect(authErrorKey({ code: "unexpected_failure", status: 500 })).toBe("errorGeneric");
     expect(authErrorKey(null)).toBe("errorGeneric");
+  });
+});
+
+describe("signUpErrorKey", () => {
+  it("treats an already registered address like a successful sign-up", () => {
+    expect(signUpErrorKey(null)).toBeNull();
+    expect(signUpErrorKey({ code: "user_already_exists", status: 422 })).toBeNull();
+    expect(signUpErrorKey({ code: "email_exists", status: 422 })).toBeNull();
+    expect(signUpErrorKey({ code: "weak_password", status: 422 })).toBe("errorWeakPassword");
   });
 });
 

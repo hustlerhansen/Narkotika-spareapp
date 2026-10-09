@@ -368,6 +368,20 @@ describe("data rights", () => {
     expect(d.notificationPreferences.expo_push_token).toBeUndefined();
   });
 
+  it("export includes the caller's own account record and nobody else's (Phase 4)", async () => {
+    const res = await as(db, { role: "authenticated", userId: alice }, (q) => q(`select public.export_my_data() as d`));
+    const d = res.rows[0].d;
+    const own = await db.query("select email from auth.users where id = $1", [alice]);
+    expect(d.account.email).toBe(own.rows[0].email);
+    expect(Object.keys(d.account).sort()).toEqual(["createdAt", "emailConfirmedAt", "email", "lastSignInAt", "signUpConfirmations"].sort());
+    const others = await db.query("select email from auth.users where id <> $1", [alice]);
+    for (const row of others.rows) expect(JSON.stringify(d)).not.toContain(row.email);
+  });
+
+  it("my_account_info is not callable anonymously", async () => {
+    await expect(as(db, { role: "anon" }, (q) => q(`select public.my_account_info()`))).rejects.toThrow(/permission denied/);
+  });
+
   it("export requires authentication", async () => {
     await expect(as(db, { role: "anon" }, (q) => q(`select public.export_my_data()`))).rejects.toThrow(/permission denied/);
   });
@@ -469,7 +483,7 @@ describe("Phase 3 constraints and consent", () => {
   it("export includes Phase 3 data", async () => {
     const res = await as(db, { role: "authenticated", userId: alice }, (q) => q(`select public.export_my_data() as d`));
     const d = res.rows[0].d;
-    expect(d.formatVersion).toBe(2);
+    expect(d.formatVersion).toBe(3);
     for (const key of ["cravingEventTriggers", "copingStrategies", "taskCompletions", "weeklyGoals", "articleActivity"]) {
       expect(d[key].length, key).toBeGreaterThan(0);
     }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authErrorKey, MIN_PASSWORD_LENGTH, TERMS_VERSION, validateSignUp } from "@nystart/core";
+import { MIN_PASSWORD_LENGTH, signUpErrorKey, TERMS_VERSION, validateSignUp } from "@nystart/core";
 import { AuthPage, CheckboxField, FormMessageView, type FormMessage } from "@/components/auth/AuthParts";
 import { Button } from "@/components/ui/Button";
 import { Field, TextInput } from "@/components/ui/Field";
@@ -40,9 +40,10 @@ export function SignUp() {
       },
     });
     setBusy(false);
-    if (error) return setMessage({ ok: false, text: t.t(`account.${authErrorKey(error)}`) });
+    const failed = signUpErrorKey(error);
+    if (failed) return setMessage({ ok: false, text: t.t(`account.${failed}`) });
     if (data.session) return router.push("/profil");
-    // Same message whether or not the address was already registered (no account enumeration).
+    // Same message whether or not the address was already registered (no account enumeration in the UI).
     setSent(true);
     setPassword("");
     setRepeat("");

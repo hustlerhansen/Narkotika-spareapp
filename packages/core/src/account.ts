@@ -65,6 +65,15 @@ export function authErrorKey(error: { code?: string | null; status?: number | nu
   return "errorGeneric";
 }
 
+/**
+ * Sign-up outcome without account enumeration: "already registered" is shown exactly like a
+ * successful sign-up ("check your e-mail"). Returns null when the UI should show that message.
+ */
+export function signUpErrorKey(error: { code?: string | null; status?: number | null } | null | undefined): AccountErrorKey | null {
+  if (!error || error.code === "user_already_exists" || error.code === "email_exists") return null;
+  return authErrorKey(error);
+}
+
 /** Internal paths an e-mail link may land on after `/auth/callback`. Everything else falls back to `/profil`. */
 export const AUTH_REDIRECT_PATHS = ["/profil", "/nytt-passord"] as const;
 

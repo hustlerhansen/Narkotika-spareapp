@@ -9,7 +9,10 @@ create schema auth;
 create table auth.users (
   id uuid primary key,
   email text unique,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  email_confirmed_at timestamptz,
+  last_sign_in_at timestamptz,
+  raw_user_meta_data jsonb not null default '{}'::jsonb
 );
 
 create or replace function auth.uid() returns uuid language sql stable as $$
