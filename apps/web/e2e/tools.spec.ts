@@ -110,6 +110,7 @@ test.describe("Mine triggere", () => {
 
     for (let i = 0; i < 5; i++) {
       await page.getByRole("group", { name: "Hva tror du utløste det?" }).getByText("Lønningsdag / utbetaling").click();
+      await page.getByText(/Flere detaljer \(valgfritt\)/).click();
       await page.getByRole("group", { name: "Hva prøvde du?" }).getByText("Pusteøvelse").click();
       await page.getByRole("group", { name: "Hjalp det?" }).getByText("Ja", { exact: true }).click();
       await page.getByRole("button", { name: "Lagre registrering" }).click();

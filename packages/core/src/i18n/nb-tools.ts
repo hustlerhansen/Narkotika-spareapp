@@ -135,6 +135,7 @@ export const nbTools = {
     intensityValue: "Russug {value} av 10",
     whichTriggers: "Hva tror du utløste det?",
     noTriggersYet: "Legg til triggere over for å kunne velge dem her.",
+    moreDetails: "Flere detaljer (valgfritt): følelser, hva du prøvde, notat",
     feelings: "Hvordan hadde du det?",
     strategiesTried: "Hva prøvde du?",
     helpful: "Hjalp det?",

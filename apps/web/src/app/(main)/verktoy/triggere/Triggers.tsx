@@ -145,6 +145,9 @@ function CravingLogForm({ state }: { state: AppState }) {
       ) : (
         <p className="text-sm text-muted">{t.t("triggers.noTriggersYet")}</p>
       )}
+      <details className="rounded-xl bg-surface-2 p-3" open={emotions.length > 0 || strategies.length > 0 || note.length > 0}>
+        <summary className="tap flex cursor-pointer items-center font-medium">{t.t("triggers.moreDetails")}</summary>
+        <div className="mt-3 flex flex-col gap-4">
       <Chips
         legend={t.t("triggers.feelings")}
         name="log-emotions"
@@ -174,6 +177,8 @@ function CravingLogForm({ state }: { state: AppState }) {
       <Field label={t.t("triggers.note")}>
         {(p) => <TextArea {...p} maxLength={4000} value={note} onChange={(e) => setNote(e.target.value)} />}
       </Field>
+        </div>
+      </details>
       {msg && (
         <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "font-medium text-success" : "font-medium text-danger"}>
           {msg.text}
@@ -354,10 +359,13 @@ function StrategyLibrary({ state }: { state: AppState }) {
   const [label, setLabel] = useState("");
   return (
     <Card className="flex flex-col gap-3" aria-labelledby="library-title">
-      <h2 id="library-title" className="text-lg font-semibold">
-        {t.t("triggers.library")}
-      </h2>
-      <ul className="flex flex-col divide-y divide-border">
+      <details>
+      <summary className="tap flex cursor-pointer items-center">
+        <h2 id="library-title" className="text-lg font-semibold">
+          {t.t("triggers.library")}
+        </h2>
+      </summary>
+      <ul className="mt-2 flex flex-col divide-y divide-border">
         {allStrategyKeys(state).map((k) => {
           const fav = state.favoriteCopingKeys.includes(k);
           const name = strategyLabel(t, state, k);
@@ -391,6 +399,7 @@ function StrategyLibrary({ state }: { state: AppState }) {
           {t.t("triggers.addCustom")}
         </Button>
       </div>
+      </details>
     </Card>
   );
 }
