@@ -22,15 +22,14 @@ import {
   validateAssistantOutput,
   wrapUserText,
   type AiProvider,
-  type DailyBudget,
-  type RateLimiter,
 } from "@nystart/core";
 
+/** In-memory (core RateLimiter/DailyBudget) or shared Postgres implementations (shared-limits.ts). */
 export interface ChatDeps {
   enabled: boolean;
   provider: AiProvider;
-  limiter: RateLimiter;
-  budget: DailyBudget;
+  limiter: { take(clientKey: string): boolean | Promise<boolean> };
+  budget: { take(): boolean | Promise<boolean> };
 }
 
 const bodySchema = z.object({
@@ -98,14 +97,14 @@ export async function handleChat(req: Request, deps: ChatDeps): Promise<Response
   const last = parsed.messages[parsed.messages.length - 1]!;
   if (last.role !== "user" || last.content.length > AI_LIMITS.maxMessageChars) return json(400, { kind: "error", error: "invalid" });
 
-  if (!deps.limiter.take(clientKey(req))) return json(429, { kind: "error", error: "rate_limited" });
+  if (!(await deps.limiter.take(clientKey(req)))) return json(429, { kind: "error", error: "rate_limited" });
 
   // Deterministic safety routing BEFORE any model call.
   const route = routeMessage(last.content);
   if (route.kind === "crisis") return json(200, { kind: "crisis", category: route.category, level: route.level });
   if (route.kind === "policy") return json(200, { kind: "policy", category: route.category });
 
-  if (!deps.budget.take()) return json(429, { kind: "error", error: "budget" });
+  if (!(await deps.budget.take())) return json(429, { kind: "error", error: "budget" });
 
   const system = parsed.context ? `${SYSTEM_PROMPT}\nKontekst brukeren har valgt å dele: ${parsed.context}` : SYSTEM_PROMPT;
   const turns = parsed.messages.map((m) => ({ role: m.role, content: m.role === "user" ? wrapUserText(m.content) : m.content }));

@@ -197,3 +197,21 @@ describe("data rights", () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe("shared AI rate limits through PostgREST (R-23)", () => {
+  it("holds exactly under 25 concurrent requests, as from several server instances", async () => {
+    const admin = serviceClient();
+    const subject = Array.from({ length: 64 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
+    const results = await Promise.all(
+      Array.from({ length: 25 }, () => admin.rpc("ai_take", { p_subject: subject, p_scope: "minute", p_limit: 5 }).then((r) => r.data)),
+    );
+    expect(results.filter((ok) => ok === true)).toHaveLength(5);
+  });
+
+  it("cannot be used with the anon key or a user session", async () => {
+    const subject = "b".repeat(64);
+    expect((await anonClient().rpc("ai_take", { p_subject: subject, p_scope: "minute", p_limit: 5 })).error).not.toBeNull();
+    const { client } = await confirmedUser("ratelimit");
+    expect((await client.rpc("ai_take", { p_subject: subject, p_scope: "minute", p_limit: 5 })).error).not.toBeNull();
+  });
+});

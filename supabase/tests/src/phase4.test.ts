@@ -106,3 +106,39 @@ describe("check-in day status parity", () => {
     });
   });
 });
+
+describe("shared AI rate limits (R-23)", () => {
+  const subject = "a".repeat(64);
+
+  it("counts atomically per window and refuses above the limit", async () => {
+    await db.query("delete from public.ai_rate_counters");
+    const results: boolean[] = [];
+    for (let i = 0; i < 5; i++) {
+      const r = await as(db, { role: "service_role" }, (q) => q(`select public.ai_take($1, 'minute', 3) as ok`, [subject]), { commit: true });
+      results.push(r.rows[0].ok);
+    }
+    expect(results).toEqual([true, true, true, false, false]);
+    const row = await db.query(`select count from public.ai_rate_counters where subject = $1 and scope = 'minute'`, [subject]);
+    expect(row.rows[0].count).toBe(3);
+  });
+
+  it("keeps a separate global daily budget and refuses a zero limit", async () => {
+    const ok = await as(db, { role: "service_role" }, (q) => q(`select public.ai_take('global', 'day', 1) as a, public.ai_take('global', 'day', 1) as b, public.ai_take('global', 'day', 0) as c`), {
+      commit: true,
+    });
+    expect(ok.rows[0]).toEqual({ a: true, b: false, c: false });
+  });
+
+  it("rejects raw identifiers (only hashes or 'global') and unknown scopes", async () => {
+    await expect(as(db, { role: "service_role" }, (q) => q(`select public.ai_take('203.0.113.7', 'minute', 5)`))).rejects.toThrow(/check constraint/);
+    await expect(as(db, { role: "service_role" }, (q) => q(`select public.ai_take($1, 'hour', 5)`, [subject]))).rejects.toThrow(/invalid scope/);
+  });
+
+  it("is not callable or readable by app roles", async () => {
+    await expect(as(db, { role: "anon" }, (q) => q(`select public.ai_take($1, 'minute', 5)`, [subject]))).rejects.toThrow(/permission denied/);
+    await expect(as(db, { role: "authenticated", userId: person }, (q) => q(`select public.ai_take($1, 'minute', 5)`, [subject]))).rejects.toThrow(
+      /permission denied/,
+    );
+    await expect(as(db, { role: "authenticated", userId: analyst }, (q) => q(`select * from public.ai_rate_counters`))).rejects.toThrow(/permission denied/);
+  });
+});
