@@ -52,6 +52,9 @@ export default function PrivacyPage() {
         <Section title={t.t("legal.sharingTitle")}>
           <p>{t.t("legal.sharingBody")}</p>
         </Section>
+        <Section title={t.t("legal.errorsTitle")}>
+          <p>{t.t("legal.errorsBody")}</p>
+        </Section>
         <Section title={t.t("legal.cookiesTitle")}>
           <p>{t.t("legal.cookiesBody")}</p>
         </Section>
