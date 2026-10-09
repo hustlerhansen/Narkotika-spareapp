@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { PreferencesEffect } from "@/components/PreferencesEffect";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { STORAGE_KEY } from "@/lib/storage";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-dvh">
         <PreferencesEffect />
+        <ServiceWorker />
         {children}
       </body>
     </html>

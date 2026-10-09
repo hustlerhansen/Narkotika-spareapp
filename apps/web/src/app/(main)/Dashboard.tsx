@@ -22,6 +22,7 @@ import { CheckinCard } from "@/components/dashboard/CheckinCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ReductionCard } from "@/components/dashboard/ReductionCard";
 import { SosCallout } from "@/components/dashboard/SosCallout";
+import { TodayCard } from "@/components/dashboard/TodayCard";
 import { Card } from "@/components/ui/Card";
 import { useNow } from "@/lib/use-now";
 import { useT } from "@/lib/i18n";
@@ -51,6 +52,8 @@ function DashboardContent({ state }: { state: AppState & { profile: Profile } })
       {preferences.showMotivation && <MotivationCard now={now} />}
 
       <CheckinCard key={localDateKey(now)} checkins={state.checkins} now={now} />
+
+      <TodayCard state={state} now={now} />
 
       <QuickActions />
 
