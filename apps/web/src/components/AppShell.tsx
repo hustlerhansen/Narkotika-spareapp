@@ -4,6 +4,7 @@ import { UserRound } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { BottomNav } from "./BottomNav";
 import { StorageStatusBanner } from "./StorageStatusBanner";
+import { OfflineBanner } from "./pwa/OfflineBanner";
 import { Logo } from "./Logo";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -30,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <StorageStatusBanner />
+      <OfflineBanner />
       <main id="main" tabIndex={-1} className="mx-auto max-w-2xl px-4 pb-32 pt-4 outline-none">
         {children}
       </main>

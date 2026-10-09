@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   referrer: "no-referrer",
   formatDetection: { telephone: false },
+  // iOS home-screen web app (apple-touch-icon comes from app/apple-icon.png).
+  appleWebApp: { capable: true, title: "NY START", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

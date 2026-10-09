@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
 
+// Route/observe the service worker's own network requests too (needed to simulate a failed
+// network for the offline fallback; also makes the privacy request assertions stricter).
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= "1";
+
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 // Second server with the AI coach enabled against the deterministic MOCK provider (never a real model).
 const AI_PORT = PORT + 1;

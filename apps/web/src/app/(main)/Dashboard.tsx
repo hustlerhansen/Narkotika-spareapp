@@ -23,6 +23,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ReductionCard } from "@/components/dashboard/ReductionCard";
 import { SosCallout } from "@/components/dashboard/SosCallout";
 import { TodayCard } from "@/components/dashboard/TodayCard";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { Card } from "@/components/ui/Card";
 import { useNow } from "@/lib/use-now";
 import { useT } from "@/lib/i18n";
@@ -56,6 +57,8 @@ function DashboardContent({ state }: { state: AppState & { profile: Profile } })
       <TodayCard state={state} now={now} />
 
       <QuickActions />
+
+      <InstallPrompt />
 
       {state.substances.length > 1 && <OtherSubstances state={state} now={now} primaryId={primary?.id} />}
     </div>

@@ -11,6 +11,7 @@ export const dynamic = "force-static";
  */
 const PRECACHE = [
   "/sos",
+  "/offline",
   "/hjelp",
   "/laer",
   "/",
@@ -72,7 +73,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pages and RSC payloads: network first, fall back to cache, then to the SOS page.
+  // Pages and RSC payloads: network first, fall back to cache, then to the offline page (which links to SOS).
   event.respondWith(
     fetch(req)
       .then((res) => {
@@ -82,7 +83,7 @@ self.addEventListener("fetch", (event) => {
       .catch(async () => {
         const hit = await caches.match(req) || await caches.match(url.pathname);
         if (hit) return hit;
-        if (req.mode === "navigate") return (await caches.match("/sos")) || Response.error();
+        if (req.mode === "navigate") return (await caches.match("/offline")) || (await caches.match("/sos")) || Response.error();
         return Response.error();
       }),
   );
